@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="span4 offset2">
+    <h3>{{escape(current_user["name"])}}</h3>
+    <a href="https://facebook.com/{{escape(current_user["id"])}}" target="_blank">
+        <img src="//graph.facebook.com/{{escape(current_user["id"])}}/picture?width=200&height=200">
+    </a>
+</div>
+{% end %}
+{% block match %}
+  {% module Partner(top_match) %}
+{% end %}
+
+{% block data %}
+<div class="row-fluid">
+<div class="offset4">
+	<h4>Some interests you share</h4>
+	<ul class="common-interests">
+		{% for i in likes %}
+			<li><a href="http://facebook.com/{{_(i)}}" target="_blank">{{_(likes[i])}}</a></li>
+		{% end %}
+	</ul>
+</div>
+</div>
+{% end %}
