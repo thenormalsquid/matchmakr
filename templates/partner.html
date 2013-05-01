@@ -31,6 +31,7 @@
 </div>
 </div>
 	<a href="#" class="show_hide btn btn-large btn-block btn-info">View the Contenders</a>
+	<a href="#" class="show_hide_home btn btn-large btn-block btn-info pull-right">I like to homewreck</a>
 {% end %}
 {% end %}
 
@@ -39,7 +40,6 @@
 	{% if contenders != None %}
 		{% for e in contenders %}
 			{% set p = contenders[e] %}
-			<div class="row">
 			<div class="span4">
 			     <h3>{{escape(p["name"])}}</h3>
 			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
@@ -55,8 +55,31 @@
 			    	</ul>
 			    </div>
 			</div>
-			</div>
 		{% end %}
 	<a href="#" class="show_hide btn btn-large btn-block btn-info">Hide the Contenders</a>
+	{% end %}
+{% end %}
+
+{% block homewrecker_list %}
+	{% if homewreckers != None %}
+		{% for e in homewreckers %}
+			{% set p = homewreckers[e] %}
+			<div class="span4">
+			     <h3>{{escape(p["name"])}}</h3>
+			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
+			    	<img src="//graph.facebook.com/{{escape(p["id"])}}/picture?width=200&height=200">
+			    </a>
+			    <div class="homewrecker-interests">
+			    	<h4>Some interests you share</h4>
+			    	<ul>
+			    		{% for id in p["likes"] %}
+			    			{% set name = p["likes"][id] %}
+			    			<li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+			    		{% end %}
+			    	</ul>
+			    </div>
+			</div>
+		{% end %}
+	<a href="#" class="show_hide2 btn btn-large btn-block btn-info">Hide the Homewrecked matches</a>
 	{% end %}
 {% end %}

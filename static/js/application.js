@@ -56,5 +56,13 @@ $(document).ready(function() {
         $(".contend-list").slideToggle();
         });
 
+
+            $(".homewreck-list").hide();
+            $(".show_hide2").show();
+        $('.show_hide2').click(function(){
+        $(".homewreck-list").slideToggle();
+        });
+
+
 });
 

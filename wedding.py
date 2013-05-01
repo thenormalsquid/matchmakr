@@ -273,11 +273,11 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         # self.redirect("/lovebirds")
         friends = yield tornado.gen.Task(self.get_friends)
         if friends == None:
-            # yield tornado.gen.Task(self.sports)
-            # yield tornado.gen.Task(self.books_games)
-            # yield tornado.gen.Task(self.interests)
-            # music = yield tornado.gen.Task(self.music)
-            # tv = yield tornado.gen.Task(self.get_tv)
+            yield tornado.gen.Task(self.sports)
+            yield tornado.gen.Task(self.books_games)
+            yield tornado.gen.Task(self.interests)
+            music = yield tornado.gen.Task(self.music)
+            tv = yield tornado.gen.Task(self.get_tv)
             yield tornado.gen.Task(self.ready_data)
             yield tornado.gen.Task(self.display)
 
@@ -343,14 +343,17 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         with c.pipeline() as pipe:
             d = data["friends"]["data"]
             for i in d:
+                print i
                 if "relationship_status" not in i:
                     pipe.hmset("people:%s" % i["id"], i)
                 else:
                     rel = i["relationship_status"]
                     if rel == "Married" or rel == "In a Relationship":
                         #adds taken people
-                        pipe.hmset("people:%s:taken" % i["id"])
+                        print "hi"
+                        pipe.hmset("people:%s:%s" % (i["id"], "taken"))
                     elif rel == "Single" or rel == "It's Complicated":
+                        print "what"
                         pipe.hmset("people:%s" % i["id"], i)
             pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
             yield tornado.gen.Task(pipe.execute)
