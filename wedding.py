@@ -1,3 +1,4 @@
+import random
 import os.path
 import tornado.auth
 import tornado.escape
@@ -11,19 +12,9 @@ import tornadoredis
 import logging
 
 from tornado.escape import to_unicode, json_decode, native_str, json_encode
-import random
 
-from tornado.options import define, options, parse_command_line
-
-define("port", default=1935, help="run on the given port", type=int)
-define("facebook_api_key", help="API key",
-       default="451844331561292")
-define("facebook_secret", help="Facebook application secret",
-       default="86938626051ad850ca9b758ef8b0c258")
-
-
-# should get object from mainhandler and store to redis, but for test
-# purposes, we'll just use minehandler for that now
+import settings_thien
+from tornado.options import options
 
 c = tornadoredis.Client()
 c.connect()
@@ -32,6 +23,7 @@ c.connect()
 class Application(tornado.web.Application):
 
     def __init__(self):
+        debug = (tornado.options.options.environment == "dev")
         handlers = [
             (r"/", IndexHandler),
             (r"/main", MainHandler),
