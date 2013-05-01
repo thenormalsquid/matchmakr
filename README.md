@@ -21,3 +21,4 @@ TODO:
 - [ ] migrate to ec2
 - [ ] setup nginx to handle static files
 - [ ] asynch the fb requests in scrapehandler (40 sec avg is toooo slow)
+- [ ] optimize scrape
