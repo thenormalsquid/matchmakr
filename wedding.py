@@ -8,7 +8,6 @@ import tornado.web
 import tornado.log
 import tornado.gen
 import tornadoredis
-from facebook import GraphAPI
 import logging
 
 from tornado.escape import to_unicode, json_decode, native_str, json_encode
