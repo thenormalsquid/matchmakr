@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="static/css/styles.css">
     <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css">
     <link rel="stylesheet" href="static/css/video-js.css">
+    <script type="text/javascript">
+
+    </script>
 </head>
 
 <body>
@@ -25,6 +28,10 @@
       </div>
          {% block data %}
          {% end %}
+      <div class="contend-list">
+         {% block contend_list %}
+         {% end %}
+      </div>
 
          {% block form %}
          {% end %}
@@ -68,7 +75,7 @@
  <script type="text/javascript" src="static/js/application.js"></script>
  <script type="text/javascript" src="static/js/bootstrap-tooltip.js"></script>
  <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
- <script type="text/javascript">
+ <script type="text/javascript"> 
    $(function () {
            $("#pop").popover({placement:'bottom', title:"Ever been curious about whom amongst your friends and facebook network you're most compatible with? Now you can find out...and it's all anonymous!", content:"Our matchmaking algorithm finds a match for you based on you and your friends': likes, interests, activities, relationship status, and bio.  We value your privacy, so all of your data remains anonymous.  Check our (privacy policy) to learn how we keep your data private." });
    });

@@ -46,7 +46,7 @@ class Application(tornado.web.Application):
             xsrf_cookies=True,
             facebook_api_key=options.facebook_api_key,
             facebook_secret=options.facebook_secret,
-            ui_modules={"Partner":PartnerModule},
+            ui_modules={"Partner":PartnerModule, "Contender":ContenderModule},
             debug=True,
             autoescape=None,
         )
@@ -419,19 +419,39 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def get_scores(self):
         pipe = c.pipeline()
         d = {}
+        cont = {}
         scores = yield tornado.gen.Task(c.zrevrange, "match:%s" % (self.current_user["id"]), 0, -1, with_scores=False)
-        top = scores[0]
-        person = yield tornado.gen.Task(c.hgetall,"people:%s" % top)
-        likes = yield tornado.gen.Task(c.smembers,"matches:%s:%s" % (top,self.current_user["id"]))
-        for i in likes:
-            name = yield tornado.gen.Task(c.hget, "%s" % i, "name")
-            d[i] = name
-        self.render("partner.html", top_match=person, likes=d)
+        try:
+            top = scores[0]
+            person = yield tornado.gen.Task(c.hgetall,"people:%s" % top)
+            likes = yield tornado.gen.Task(c.smembers,"matches:%s:%s" % (top,self.current_user["id"]))
+            for i in likes:
+                name = yield tornado.gen.Task(c.hget, "%s" % i, "name")
+                d[i] = name
+            if len(scores) > 5:
+                for p in scores[1:6]:
+                    l = yield tornado.gen.Task(c.smembers,"matches:%s:%s" % (p,self.current_user["id"]))
+                    person2 = yield tornado.gen.Task(c.hgetall,"people:%s" % p)
+                    cont[p] = person2
+                    cont[p]["likes"] = {}
+                    for like in l:
+                        name2 = yield tornado.gen.Task(c.hget, "%s" % like, "name")
+                        cont[p]["likes"][like] = name2
+                #for e in contenders, contenders[e]
+                self.render("partner.html", top_match=person, likes=d, contenders=cont)
+            else:
+                self.render("partner.html", top_match=person, likes=d, contenders=None)
+        except IndexError:
+            self.render("partner.html", top_match=None, likes=None, contenders=None)
 
 
 class PartnerModule(tornado.web.UIModule):
     def render(self, top_match):
         return self.render_string("modules/partner.html", top_match=top_match)
+
+class ContenderModule(tornado.web.UIModule):
+    def render(self, contenders):
+        self.render_string("modules/contender.html", contenders=contenders)
 
 
 def main():
