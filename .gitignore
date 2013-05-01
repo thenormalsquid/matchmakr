@@ -1,3 +1,5 @@
 *.pyc
 *.sublime*
 .sass-cache
+*.conf
+settings.py
