@@ -13,6 +13,8 @@ First start redis
 Start wedding
 ` $ python wedding.py `
 
+Demo running at radicalcakes.udderweb.com:1935
+
 
 TODO:
 - [ ] add both single and relationshipped people
