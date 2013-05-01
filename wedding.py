@@ -343,7 +343,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         with c.pipeline() as pipe:
             d = data["friends"]["data"]
             for i in d:
-                print i
                 if "relationship_status" not in i:
                     pipe.hmset("people:%s" % i["id"], i)
                 else:
@@ -351,7 +350,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     if rel == "Married" or rel == "In a Relationship":
                         #adds taken people
                         pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
-                        continue
                     elif rel == "Single" or rel == "It's Complicated":
                         pipe.hmset("people:%s" % i["id"], i)
             pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
@@ -385,7 +383,7 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             for key in args:
                 if key in f:
                     user_gender = yield tornado.gen.Task(c.hget, "people:%s" % f["id"], "gender")
-                    homewreck_gender = yield tornado.gen.Task(c.hget, "people:%s:taken" % e["id"], "gender")
+                    homewreck_gender = yield tornado.gen.Task(c.hget, "people:%s:taken" % f["id"], "gender")
                     if user_gender:
                         for i in f[key]["data"]:
                         # print "likes:%s:%s:%s" %(i["id"],user_gender,i["name"])
@@ -462,7 +460,6 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         try:
             top = scores[0]
             person = yield tornado.gen.Task(c.hgetall, "people:%s" % top)
-            hperson = yield tornado.gen.Task(c.hgetall, "people:%s:homewreck" % top)
             likes = yield tornado.gen.Task(c.smembers, "matches:%s:%s" % (top, self.current_user["id"]))
             hlikes = yield tornado.gen.Task(c.smembers, "matches:%s:%s:homewreck" % (top, self.current_user["id"]))
             for i in likes:
@@ -481,8 +478,8 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                         name2 = yield tornado.gen.Task(c.hget, "%s" % like, "name")
                         cont[p]["likes"][like] = name2
                 for j in hscores[0:5]:
-                    hl = yield tornado.gen.Task(c.smembers, "matches:%s:%s:homewreck" % (p, self.current_user["id"]))
-                    hperson2 = yield tornado.gen.Task(c.hgetall, "people:%s:homewreck" % p)
+                    hl = yield tornado.gen.Task(c.smembers, "matches:%s:%s:homewreck" % (j, self.current_user["id"]))
+                    hperson2 = yield tornado.gen.Task(c.hgetall, "people:%s:taken" % j)
                     hcont[j] = hperson2
                     hcont[j]["likes"] = {}
                     for hlike in hl:
