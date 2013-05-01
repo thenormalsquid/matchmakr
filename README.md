@@ -13,7 +13,7 @@ First start redis
 Start wedding
 ` $ python wedding.py `
 
-Demo running at radicalcakes.udderweb.com:1935
+Demo running at http://radicalcakes.udderweb.com:1935
 
 
 TODO:
