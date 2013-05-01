@@ -1,0 +1,202 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+/* line 9, ../sass/modules/_palette.sass */
+.palette {
+  color: white;
+  margin: 0;
+  padding: 15px;
+  text-transform: uppercase;
+}
+/* line 15, ../sass/modules/_palette.sass */
+.palette dt {
+  display: block;
+  font-weight: 500;
+  opacity: 0.8;
+}
+/* line 20, ../sass/modules/_palette.sass */
+.palette dd {
+  font-weight: 100;
+  margin-left: 0;
+  opacity: 0.8;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-firm {
+  background-color: #1abc9c;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-firm-dark {
+  background-color: #16a085;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-success {
+  background-color: #2ecc71;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-success-dark {
+  background-color: #27ad60;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-info {
+  background-color: #3498db;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-info-dark {
+  background-color: #2383c4;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-warning {
+  background-color: #f1c40f;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-warning-dark {
+  background-color: #cea70c;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-danger {
+  background-color: #e74c3c;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-danger-dark {
+  background-color: #dc2d1b;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-night {
+  background-color: #34495e;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-night-dark {
+  background-color: #2c3e50;
+}
+
+/* line 3, ../sass/modules/_palette.sass */
+.palette-bright {
+  background-color: #f1c40f;
+}
+
+/* line 6, ../sass/modules/_palette.sass */
+.palette-bright-dark {
+  background-color: #cea70c;
+}
+
+/* line 34, ../sass/modules/_palette.sass */
+.palette-success-dark {
+  background-color: #27ae60;
+}
+
+/* line 37, ../sass/modules/_palette.sass */
+.palette-info-dark {
+  background-color: #2980b9;
+}
+
+/* line 40, ../sass/modules/_palette.sass */
+.palette-bright-dark {
+  background-color: #f39c12;
+}
+
+/* line 43, ../sass/modules/_palette.sass */
+.palette-amethyst {
+  background-color: #9b59b6;
+}
+
+/* line 46, ../sass/modules/_palette.sass */
+.palette-wisteria {
+  background-color: #8e44ad;
+}
+
+/* line 49, ../sass/modules/_palette.sass */
+.palette-carrot {
+  background-color: #e67e22;
+}
+
+/* line 52, ../sass/modules/_palette.sass */
+.palette-pumpkin {
+  background-color: #d35400;
+}
+
+/* line 55, ../sass/modules/_palette.sass */
+.palette-alizarin {
+  background-color: #e74c3c;
+}
+
+/* line 58, ../sass/modules/_palette.sass */
+.palette-pomegranate {
+  background-color: #c0392b;
+}
+
+/* line 61, ../sass/modules/_palette.sass */
+.palette-clouds {
+  background-color: #ecf0f1;
+  color: #bdc3c7;
+}
+
+/* line 65, ../sass/modules/_palette.sass */
+.palette-silver {
+  background-color: #bdc3c7;
+}
+
+/* line 68, ../sass/modules/_palette.sass */
+.palette-concrete {
+  background-color: #95a5a6;
+}
+
+/* line 71, ../sass/modules/_palette.sass */
+.palette-asbestos {
+  background-color: #7f8c8d;
+}
+
+/* line 75, ../sass/modules/_palette.sass */
+.palette-paragraph {
+  color: #7f8c8d;
+  font-size: 12px;
+  line-height: 17px;
+}
+/* line 80, ../sass/modules/_palette.sass */
+.palette-paragraph span {
+  color: #bdc3c7;
+}
+
+/* line 84, ../sass/modules/_palette.sass */
+.palette-headline {
+  color: #7f8c8d;
+  font-weight: 700;
+  margin-top: -5px;
+}
+
+/* line 9, ../sass/screen.sass */
+body {
+  background-color: #ecf0f1;
+}
+
+/* line 12, ../sass/screen.sass */
+.hero {
+  padding: 10px 0;
+  text-align: center;
+}
+/* line 15, ../sass/screen.sass */
+.hero h1 {
+  font-size: 65px;
+  text-shadow: 0 -1px white;
+}
+/* line 18, ../sass/screen.sass */
+.hero h3 {
+  color: #df304e;
+}
+/* line 20, ../sass/screen.sass */
+.hero .img-logo {
+  width: 350px;
+  margin-bottom: -45px;
+}

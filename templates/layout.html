@@ -2,13 +2,12 @@
 <html>
 <head>
     <title>Matchmakr | Ever wondered whom on facebook you're most compatible with</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/styles.css">
-    <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css">
-    <link rel="stylesheet" href="static/css/video-js.css">
-    <script type="text/javascript">
-
-    </script>
+    <link rel="stylesheet" href="static/css/bootstrap.css" />
+    <link rel="stylesheet" href="static/css/flat-ui.css" />
+    <link rel="stylesheet" href="static/css/ie.css" />
+    <link rel="stylesheet" href="static/css/print.css" />
+    <link rel="stylesheet" href="static/css/screen.css" />
+    <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css" />
 </head>
 
 <body>
@@ -42,22 +41,7 @@
          {% block form %}
          {% end %}
     {% else %}
-    <div class="row-fluid">
-    <div class="demo-headline">
-        <h1 class="demo-logo">
-            MatchMakr
-          <small class="tl">Find true love today</small>
-        </h1>
-    </div>
-   </div>
-   <div class="row-fluid">
-    <div class="span3 offset3">
-        <a href="#" class="btn btn-large btn-block" id="pop"><b>What is this?</b></a>
-    </div>
-    <div class="span3">
-        <a href="/main" class="btn btn-large btn-block btn-info"><b>Sign In With Facebook<b></a>
-    </div> 
-    </div>
+      {% include 'home.html' %}
     {% end %}
     <hr>
     <div class="footer">
