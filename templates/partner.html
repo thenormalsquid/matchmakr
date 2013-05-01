@@ -30,8 +30,8 @@
 	</ul>
 </div>
 </div>
-	<a href="#" class="show_hide btn btn-large btn-block btn-info">View the Contenders</a>
-	<a href="#" class="show_hide2 btn btn-large btn-block btn-info">I like to homewreck</a>
+	<a href="#" class="show_hide btn btn-large btn-block btn-info span4">View the Contenders</a>
+	<a href="#" class="show_hide2 btn btn-large btn-block btn-info span4 pull-right">I like to homewreck</a>
 {% end %}
 {% end %}
 
@@ -40,6 +40,7 @@
 	{% if contenders != None %}
 		{% for e in contenders %}
 			{% set p = contenders[e] %}
+			<div class="row">
 			<div class="span4">
 			     <h3>{{escape(p["name"])}}</h3>
 			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
@@ -55,6 +56,7 @@
 			    	</ul>
 			    </div>
 			</div>
+		</div>
 		{% end %}
 	{% end %}
 {% end %}
@@ -63,6 +65,7 @@
 	{% if homewreckers != None %}
 		{% for e in homewreckers %}
 			{% set p = homewreckers[e] %}
+			<div class="row pull-right">
 			<div class="span4">
 			     <h3>{{escape(p["name"])}}</h3>
 			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
@@ -78,6 +81,7 @@
 			    	</ul>
 			    </div>
 			</div>
+		</div>
 		{% end %}
 	{% end %}
 {% end %}
