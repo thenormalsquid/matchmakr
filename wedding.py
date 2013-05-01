@@ -13,7 +13,7 @@ import logging
 
 from tornado.escape import to_unicode, json_decode, native_str, json_encode
 
-import settings_thien
+import settings
 from tornado.options import options
 
 c = tornadoredis.Client()

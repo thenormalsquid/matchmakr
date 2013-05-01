@@ -1,4 +1,4 @@
 *.pyc
 *.sublime*
 *.conf
-settings_*.py
+settings.py
