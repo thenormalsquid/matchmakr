@@ -350,10 +350,9 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     rel = i["relationship_status"]
                     if rel == "Married" or rel == "In a Relationship":
                         #adds taken people
-                        print "hi"
-                        pipe.hmset("people:%s:%s" % (i["id"], "taken"))
+                        pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
+                        continue
                     elif rel == "Single" or rel == "It's Complicated":
-                        print "what"
                         pipe.hmset("people:%s" % i["id"], i)
             pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
             yield tornado.gen.Task(pipe.execute)
