@@ -49,3 +49,13 @@ $(document).ready(function() {
 
 });
 
+$(document).ready(function() {
+            $(".contend-list").hide();
+            $(".show_hide").show();
+        
+        $('.show_hide').click(function(){
+        $(".contend-list").slideToggle();
+        });
+
+});
+

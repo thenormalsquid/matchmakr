@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<h2>Your Top Match</h2>
 <div class="span4 offset2">
     <h3>{{escape(current_user["name"])}}</h3>
     <a href="https://facebook.com/{{escape(current_user["id"])}}" target="_blank">
@@ -7,11 +8,18 @@
     </a>
 </div>
 {% end %}
+
 {% block match %}
+{% if top_match != None %}
   {% module Partner(top_match) %}
+{% else %}
+	<h1>Uh oh! We couldn't find a match for you!</h1>
+	<h2>You should go get a social life, make friends, and find new interests.</h2>
+{% end %}
 {% end %}
 
 {% block data %}
+{% if top_match != None %}
 <div class="row-fluid">
 <div class="offset4">
 	<h4>Some interests you share</h4>
@@ -22,4 +30,33 @@
 	</ul>
 </div>
 </div>
+	<a href="#" class="show_hide btn btn-large btn-block btn-info">View the Contenders</a>
+{% end %}
+{% end %}
+
+
+{% block contend_list %}
+	{% if contenders != None %}
+		{% for e in contenders %}
+			{% set p = contenders[e] %}
+			<div class="row">
+			<div class="span4">
+			     <h3>{{escape(p["name"])}}</h3>
+			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
+			    	<img src="//graph.facebook.com/{{escape(p["id"])}}/picture?width=200&height=200">
+			    </a>
+			    <div class="contender-interests">
+			    	<h4>Some interests you share</h4>
+			    	<ul>
+			    		{% for id in p["likes"] %}
+			    			{% set name = p["likes"][id] %}
+			    			<li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+			    		{% end %}
+			    	</ul>
+			    </div>
+			</div>
+			</div>
+		{% end %}
+	<a href="#" class="show_hide btn btn-large btn-block btn-info">Hide the Contenders</a>
+	{% end %}
 {% end %}
