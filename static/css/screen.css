@@ -178,12 +178,12 @@
 
 /* line 9, ../sass/screen.sass */
 body {
-  background-color: #ecf0f1;
+  background-color: #e8edf2;
 }
 
 /* line 12, ../sass/screen.sass */
 .hero {
-  padding: 10px 0;
+  padding: 15px 0 0;
   text-align: center;
 }
 /* line 15, ../sass/screen.sass */
@@ -199,4 +199,16 @@ body {
 .hero .img-logo {
   width: 350px;
   margin-bottom: -45px;
+}
+
+/* line 24, ../sass/screen.sass */
+.signin {
+  margin: 0 0 20px;
+}
+
+/* line 29, ../sass/screen.sass */
+.hero-tiles .tile-image {
+  height: 75px;
+  width: auto;
+  margin: 16px 0 15px;
 }
