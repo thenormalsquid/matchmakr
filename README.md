@@ -15,6 +15,7 @@ Start wedding
 
 Demo running at http://radicalcakes.udderweb.com:1935
 
+Homewrecker mode
 
 TODO:
 - [ ] add both single and relationshipped people
