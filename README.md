@@ -19,8 +19,9 @@ Homewrecker mode
 
 TODO:
 - [X] add both single and relationshipped people
-- [ ] Asynch scrape and calculations 
-		- match each call back in a callback, wait pair
+- [] Asynch scrape and calculations 
+		-  match each call back in a callback, wait pair
+		-  once loading completed, redirect to results page
 - [ ] migrate to ec2
 - [ ] setup nginx to handle static files
 - [ ] asynch the fb requests in scrapehandler (40 sec avg is toooo slow)

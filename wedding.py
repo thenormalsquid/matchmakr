@@ -28,6 +28,7 @@ class Application(tornado.web.Application):
             (r"/", IndexHandler),
             (r"/main", MainHandler),
             (r"/love", ScrapeHandler),
+            (r"/thinkingloudly",LoadingHandler),
             (r"/matches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
@@ -265,13 +266,21 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         # self.redirect("/lovebirds")
         friends = yield tornado.gen.Task(self.get_friends)
         if friends == None:
-            yield tornado.gen.Task(self.sports)
-            yield tornado.gen.Task(self.books_games)
-            yield tornado.gen.Task(self.interests)
-            music = yield tornado.gen.Task(self.music)
-            tv = yield tornado.gen.Task(self.get_tv)
-            yield tornado.gen.Task(self.ready_data)
+            # yield tornado.gen.Task(self.sports)
+            # yield tornado.gen.Task(self.books_games)
+            # yield tornado.gen.Task(self.interests)
+            # music = yield tornado.gen.Task(self.music)
+            # tv = yield tornado.gen.Task(self.get_tv)
+            yield tornado.gen.Task(self.get_things)
             yield tornado.gen.Task(self.display)
+
+    @tornado.gen.coroutine
+    def get_things(self):
+       self.music()
+       self.sports()
+       self.books_games()
+       self.interests()
+       self.get_tv()
 
     @tornado.gen.coroutine
     def get_friends(self):
@@ -282,13 +291,9 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def smack(self, d):
         return d
 
-    # def on_finish(self):
-    # just for debugging
-    #     print "finished"
-
     @tornado.gen.coroutine
     def display(self):
-        self.redirect("/matches")
+        self.redirect("/thinkingloudly")
 
     @tornado.gen.coroutine
     def sports(self):
@@ -297,10 +302,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             res, "favorite_teams", "favorite_athletes", "sports")
         print "collected sports"
 
-    @tornado.gen.coroutine
-    def get_sports(self, d):
-        self.set_base_data(
-            res, "favorite_teams", "favorite_athletes", "sports")
 
     @tornado.gen.coroutine
     def books_games(self):
@@ -392,7 +393,16 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         yield tornado.gen.Task(pipe.execute)
         print "added connect likes to redis"
 
-        # move to scrapehandler once completed
+
+
+class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        self.render("loading.html")
+
+        
+
     @tornado.gen.coroutine
     def ready_data(self):
         interest = yield tornado.gen.Task(c.hget, "users:%s" % self.current_user["id"], "attracted_to")
