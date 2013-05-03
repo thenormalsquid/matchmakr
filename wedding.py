@@ -1,4 +1,8 @@
 import random
+from threading import Thread, Event
+from Queue import Queue
+import sys
+import time
 import os.path
 import tornado.auth
 import tornado.escape
@@ -16,8 +20,27 @@ from tornado.escape import to_unicode, json_decode, native_str, json_encode
 import settings
 from tornado.options import options
 
+
 c = tornadoredis.Client()
 c.connect()
+
+
+class Counter(object):
+
+    def __init__(self):
+        self._progress = 0
+
+    def progress(self):
+        """Returns the current progress value"""
+        return self._progress
+
+    def set_progress(self, value):
+        """Sets the current progress value, passing updates to the thread"""
+
+        value = min(value, 100)
+        self._progress += value
+
+b = Counter()
 
 
 class Application(tornado.web.Application):
@@ -28,8 +51,8 @@ class Application(tornado.web.Application):
             (r"/", IndexHandler),
             (r"/main", MainHandler),
             (r"/love", ScrapeHandler),
-            (r"/thinkingloudly",LoadingHandler),
-            (r"/matches", CalculatedHandler),
+            (r"/thinkingloudly", LoadingHandler),
+            (r"/yourmatches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
         ]
@@ -253,7 +276,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     """
     Scrapes essentially
     """
-    @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
         # self.facebook_request("/me", self.get_friends,
@@ -271,16 +293,15 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             # yield tornado.gen.Task(self.interests)
             # music = yield tornado.gen.Task(self.music)
             # tv = yield tornado.gen.Task(self.get_tv)
-            yield tornado.gen.Task(self.get_things)
-            yield tornado.gen.Task(self.display)
+            show = yield tornado.gen.Task(self.display)
 
     @tornado.gen.coroutine
     def get_things(self):
-       self.music()
-       self.sports()
-       self.books_games()
-       self.interests()
-       self.get_tv()
+        self.music()
+        self.sports()
+        self.books_games()
+        self.interests()
+        self.get_tv()
 
     @tornado.gen.coroutine
     def get_friends(self):
@@ -292,8 +313,15 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         return d
 
     @tornado.gen.coroutine
+    def prepare(self):
+        yield tornado.gen.Task(self.get_things)
+
+    def on_finish(self):
+        print "fds"
+
+    @tornado.gen.coroutine
     def display(self):
-        self.redirect("/thinkingloudly")
+        self.write("calculating results")
 
     @tornado.gen.coroutine
     def sports(self):
@@ -301,7 +329,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         self.set_base_data(
             res, "favorite_teams", "favorite_athletes", "sports")
         print "collected sports"
-
 
     @tornado.gen.coroutine
     def books_games(self):
@@ -341,7 +368,7 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 else:
                     rel = i["relationship_status"]
                     if rel == "Married" or rel == "In a Relationship":
-                        #adds taken people
+                        # adds taken people
                         pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
                     elif rel == "Single" or rel == "It's Complicated":
                         pipe.hmset("people:%s" % i["id"], i)
@@ -365,8 +392,10 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                       "id"], user_gender), e["id"])
                     elif homewreck_gender:
                         for s in e[key]:
-                            pipe.sadd("likes:%s:%s:%s" % (s["id"], homewreck_gender, "homewreck"), e["id"])
+                            pipe.sadd("likes:%s:%s:%s" % (s[
+                                      "id"], homewreck_gender, "homewreck"), e["id"])
         yield tornado.gen.Task(pipe.execute)
+        b.set_progress(20)
         print "added likes to redis"
 
     @tornado.gen.coroutine
@@ -389,53 +418,23 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                         for i in f[key]["data"]:
                             if "name" not in i:
                                 continue
-                            pipe.sadd("likes:%s:%s:homewreck" % (i["id"], homewreck_gender), f["id"])
+                            pipe.sadd("likes:%s:%s:homewreck" % (
+                                i["id"], homewreck_gender), f["id"])
         yield tornado.gen.Task(pipe.execute)
+        b.set_progress(20)
         print "added connect likes to redis"
 
 
-
 class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-        self.render("loading.html")
+        print b.progress()
+        self.write("contemplating amount of lasagnas eaten")
 
-        
-
-    @tornado.gen.coroutine
-    def ready_data(self):
-        interest = yield tornado.gen.Task(c.hget, "users:%s" % self.current_user["id"], "attracted_to")
-        u_likes = yield tornado.gen.Task(c.lrange, "user:%s" % self.current_user["id"], 0, -1)
-        l = []
-        hl = []
-        pipe = c.pipeline()
-        for i in list(u_likes):
-            exists = yield tornado.gen.Task(c.exists, "likes:%s:%s" % (i, interest))
-            homewreck_exists = yield tornado.gen.Task(c.exists, "likes:%s:%s:homewreck" % (i, interest))
-            if exists:
-                members = yield tornado.gen.Task(c.smembers, "likes:%s:%s" % (i, interest))
-                for m in members:
-                    pipe.sadd("matches:%s:%s" % (
-                        m, self.current_user["id"]), i)
-                    l.append(m)
-            elif homewreck_exists:
-                members = yield tornado.gen.Task(c.smembers, "likes:%s:%s:homewreck" % (i, interest))
-                for m in members:
-                    pipe.sadd("matches:%s:%s:homewreck" %(
-                        m, self.current_user["id"]), i)
-                    hl.append(m)
-        yield tornado.gen.Task(pipe.execute)
-        self.calculate(l, hl)
-
-    @tornado.gen.coroutine
-    def calculate(self, l, hl):
-        pipe = c.pipeline()
-        for i in l:
-            pipe.zadd("match:%s" % self.current_user["id"], l.count(i), i)
-        for j in hl:
-            pipe.zadd("match:%s:homewreck" % self.current_user["id"],  hl.count(j), j)
-        yield tornado.gen.Task(pipe.execute)
+    def on_finish(self):
+        print "finished get loading"
 
 
 class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -445,18 +444,19 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def get(self):
             # get top 5 people add to rank
+        go = yield tornado.gen.Task(self.ready_data)
         yield self.get_scores()
 
     @tornado.gen.coroutine
     def get_scores(self):
         pipe = c.pipeline()
         d = {}
-        #homewrecker person dict
+        # homewrecker person dict
         dh = {}
         cont = {}
-        #homewrecker contender
+        # homewrecker contender
         hcont = {}
-        #must have score with single person for this to work
+        # must have score with single person for this to work
         scores = yield tornado.gen.Task(c.zrevrange, "match:%s" % (self.current_user["id"]), 0, -1, with_scores=False)
         hscores = yield tornado.gen.Task(c.zrevrange, "match:%s:homewreck" % (self.current_user["id"]), 0, -1, with_scores=False)
         try:
@@ -495,6 +495,42 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         except IndexError:
             self.render(
                 "partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
+
+    @tornado.gen.coroutine
+    def ready_data(self):
+        interest = yield tornado.gen.Task(c.hget, "users:%s" % self.current_user["id"], "attracted_to")
+        u_likes = yield tornado.gen.Task(c.lrange, "user:%s" % self.current_user["id"], 0, -1)
+        l = []
+        hl = []
+        pipe = c.pipeline()
+        for i in list(u_likes):
+            exists = yield tornado.gen.Task(c.exists, "likes:%s:%s" % (i, interest))
+            homewreck_exists = yield tornado.gen.Task(c.exists, "likes:%s:%s:homewreck" % (i, interest))
+            if exists:
+                members = yield tornado.gen.Task(c.smembers, "likes:%s:%s" % (i, interest))
+                for m in members:
+                    pipe.sadd("matches:%s:%s" % (
+                        m, self.current_user["id"]), i)
+                    l.append(m)
+            elif homewreck_exists:
+                members = yield tornado.gen.Task(c.smembers, "likes:%s:%s:homewreck" % (i, interest))
+                for m in members:
+                    pipe.sadd("matches:%s:%s:homewreck" % (
+                        m, self.current_user["id"]), i)
+                    hl.append(m)
+        yield tornado.gen.Task(pipe.execute)
+        self.calculate(l, hl)
+
+    @tornado.gen.coroutine
+    def calculate(self, l, hl):
+        pipe = c.pipeline()
+        for i in l:
+            pipe.zadd("match:%s" % self.current_user["id"], l.count(i), i)
+        for j in hl:
+            pipe.zadd("match:%s:homewreck" %
+                      self.current_user["id"],  hl.count(j), j)
+        yield tornado.gen.Task(pipe.execute)
+        print "ready to go"
 
 
 class PartnerModule(tornado.web.UIModule):
