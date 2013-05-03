@@ -1,10 +1,10 @@
 matchmakr (name change pending)
 =========
 Dependencies (got to make requirements.txt)
-redis
-tornado-redis
-tornado
-logging
+* redis
+* tornado-redis
+* tornado
+* logging
 
 
 First start redis 
