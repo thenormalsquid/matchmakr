@@ -55,6 +55,8 @@ class Application(tornado.web.Application):
             (r"/yourmatches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
+            (r"/privacy", PrivacyHandler),
+            (r"/terms", TermsHandler),
         ]
         settings = dict(
             cookie_secret="fdkfadsljdfklsjklad98u32#@RDSAF@#(@*&#jlitjuu#$%i99#@G",
@@ -464,6 +466,15 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             self.render(
                 "partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
 
+
+class PrivacyHandler(BaseHandler):
+    def get(self):
+        return self.render("privacy.html")
+
+
+class TermsHandler(BaseHandler):
+    def get(self):
+        return self.render("terms.html")
 
 
 class PartnerModule(tornado.web.UIModule):

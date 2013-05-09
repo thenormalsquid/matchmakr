@@ -23,6 +23,8 @@ TODO:
 - [X] Asynch scrape and calculations 
 		-  match each call back in a callback, wait pair
 		-  once loading completed, redirect to results page
+- [ ] TOS
+- [ ] Privacy Policy
 - [ ] migrate to ec2
 - [ ] setup nginx to handle static files
 
