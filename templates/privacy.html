@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Top Matches | You'd be surprised whom on Facebook you're most compatible with</title>
+    <title>My Top Matches | Get top matches from Facebook - Privacy Policy</title>
     <link rel="stylesheet" href="static/css/bootstrap.css" />
     <link rel="stylesheet" href="static/css/flat-ui.css" />
     <link rel="stylesheet" href="static/css/ie.css" />
@@ -17,6 +17,11 @@
     <div class="footer">
     Copyright 2013 Mytopmatches
     <ul>
+      {% if current_user %}
+        <li><a href="/main">Home</a></li>
+      {% else %}
+        <li><a href="/">Home</a></li>
+      {% end %}
       <li><a href="/privacy">Privacy</a></li>
       <li><a href="/terms">Terms</a></li>
     </ul>
