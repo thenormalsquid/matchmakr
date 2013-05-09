@@ -20,7 +20,7 @@ Homewrecker mode
 ##Thien
 TODO:
 - [X] add both single and relationshipped people
-- [] Asynch scrape and calculations 
+- [X] Asynch scrape and calculations 
 		-  match each call back in a callback, wait pair
 		-  once loading completed, redirect to results page
 - [ ] migrate to ec2

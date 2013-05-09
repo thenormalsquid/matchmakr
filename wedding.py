@@ -241,26 +241,7 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
-        # self.facebook_request("/me", self.get_friends,
-          #     access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender)")
-        # self.facebook_request("/me",self.get_sports, access_token = self.current_user["access_token"], fields="friends.fields(favorite_teams,favorite_athletes,sports)")
-        # self.facebook_request("/me",self.get_books_games, access_token = self.current_user["access_token"], fields="friends.fields(games,books)")
-        # self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)")
-        # self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)")
-        # self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)")
-        # self.redirect("/lovebirds")
-        yield [tornado.gen.Task(self.get_friends),
-        # yield tornado.gen.Task(self.sports)
-        # yield tornado.gen.Task(self.books_games)
-        # yield tornado.gen.Task(self.interests)
-        # music = yield tornado.gen.Task(self.music)
-        # tv = yield tornado.gen.Task(self.get_tv)
-        # yield tornado.gen.Task(self.get_things)
-        #put all of these callbacks into a bunch of func()
-        #then we fire each callback simultaneously and 
-        #yield wait at the end
-        # self.write("calculating data")
-        self.get_things(),]
+        yield [tornado.gen.Task(self.get_friends), self.get_things()]
         self.ready_data()
         self.redirect("/yourmatches")
 
@@ -306,43 +287,8 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         print "fds"
 
     @tornado.gen.coroutine
-    def display(self):
-        self.write("calculating results")
-
-    @tornado.gen.coroutine
-    def sports(self):
-        res = yield self.facebook_request("/me", self.smack, access_token=self.current_user["access_token"], fields="friends.fields(favorite_teams,favorite_athletes,sports)")
-        self.set_base_data(
-            res, "favorite_teams", "favorite_athletes", "sports")
-        print "collected sports"
-
-    @tornado.gen.coroutine
-    def books_games(self):
-        res = yield self.facebook_request("/me", self.smack, access_token=self.current_user["access_token"], fields="friends.fields(games,books)")
-        self.set_connect_data(res, "games", "books")
-        print "collected books"
-
-    @tornado.gen.coroutine
     def get_books_games(self, d):
         self.set_connect_data(res, "games", "books")
-
-    @tornado.gen.coroutine
-    def interests(self):
-        res = yield self.facebook_request("/me", self.smack, access_token=self.current_user["access_token"], fields="friends.fields(interests)")
-        self.set_connect_data(res, "interests")
-        print "added interests likes to redis"
-
-    @tornado.gen.coroutine
-    def music(self):
-        res = yield self.facebook_request("/me", self.smack, access_token=self.current_user["access_token"], fields="friends.fields(music)")
-        self.set_connect_data(res, "music")
-        print "added music"
-
-    # @tornado.gen.coroutine
-    # def get_tv(self):
-    #     res = yield self.facebook_request("/me", self.smack, access_token=self.current_user["access_token"], fields="friends.fields(television)")
-    #     self.set_connect_data(res, "television")
-    #     print "added tv likes to redis"
 
     @tornado.gen.coroutine
     def create_person(self, data):
