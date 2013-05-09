@@ -434,7 +434,6 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         except IndexError:
             self.render(
                 "partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
-            print "fuck"
 
 
     @tornado.gen.coroutine

@@ -12,6 +12,11 @@
 
 <body>
   <div class="container-fluid">
+  	{% if current_user %}
+        <a href="/main">Home</a>
+    {% else %}
+        <a href="/">Home</a>
+    {% end %}
   	<h1>Hi</h1>
   	<hr>
     <div class="footer">
