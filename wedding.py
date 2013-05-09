@@ -253,7 +253,8 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         self.facebook_request("/me",self.get_books_games, access_token = self.current_user["access_token"], fields="friends.fields(games,books)"),
         self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)"),
         self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)"),
-        self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)")]
+        self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)"),
+        self.facebook_request("/me", self.get_movies, access_token = self.current_user["access_token"], fields="friends.fields(movies)"),]
 
     @tornado.gen.coroutine
     def get_sports(self, d):
@@ -275,6 +276,11 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def get_music(self, d):
         self.set_connect_data(d, "music")
         print "added music"
+
+    @tornado.gen.coroutine
+    def get_movies(self, d):
+        self.set_connect_data(d, "movies")
+        print "movies added"
 
     @tornado.gen.coroutine
     def get_friends(self):
