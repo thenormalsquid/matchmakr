@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Top Matches | Get top matches from Facebook - Terms of Service</title>
+    <link rel="stylesheet" href="static/css/bootstrap.css" />
+    <link rel="stylesheet" href="static/css/flat-ui.css" />
+    <link rel="stylesheet" href="static/css/ie.css" />
+    <link rel="stylesheet" href="static/css/print.css" />
+    <link rel="stylesheet" href="static/css/screen.css" />
+    <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css" />
+</head>
+
+<body>
+  <div class="container-fluid">
+  	<h1>Hi</h1>
+  	<hr>
+    <div class="footer">
+    Copyright 2013 Mytopmatches
+    <ul>
+      {% if current_user %}
+        <li><a href="/main">Home</a></li>
+      {% else %}
+        <li><a href="/">Home</a></li>
+      {% end %}
+      <li><a href="/privacy">Privacy</a></li>
+      <li><a href="/terms">Terms</a></li>
+    </ul>
+    </div>
+  </div>
+ </body>
+ </html>
