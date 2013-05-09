@@ -25,6 +25,7 @@
      </form>
  </div>
  {% else %}
+     <img class="loading" src="static/images/ajax-loader.gif">
      <div class="span4">
         <h2 style="margin-left:10px;">Welcome {{escape(current_user["name"])}},</h2>
         <p style="text-align:center;margin-right:65px;">Let our algorithm</p>
@@ -32,7 +33,7 @@
     <div class="span3">
         <!-- need to disable after clicking submit -->
         <form action="/love" method="post">
-            <input type="submit" class="btn btn-large btn-block btn-danger" value="Find your perfect match">
+            <input type="submit" class="btn btn-large btn-block btn-danger submit-scrape" value="Find your perfect match">
             {% module xsrf_form_html() %}
         </form>
        </div>

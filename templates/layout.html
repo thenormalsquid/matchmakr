@@ -66,6 +66,34 @@
  <script type="text/javascript" src="static/js/bootstrap-tooltip.js"></script>
  <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
  <script type="text/javascript"> 
+ $(function() {
+    $(".loading").hide();
+    $(".submit-scrape").click(function() {
+        // Disable the submit button
+        $(this).attr("disabled", "disabled");
+
+        // Show the loading image
+        //in the styles, should set background image as /images/ajax-loader.gif
+        $(".loading").show();
+
+        // Serialize the form values for AJAX submission
+        var $formParamsString = $(this).closest("form").serialize();
+
+        $.ajax({
+            type: "POST",
+            url: "/love",
+            data: $formParamsString,
+            success: function(data) {
+              location.href = "/yourmatches"
+            },
+            error: function() {
+              //firefox hack
+              $(".loading").show();
+              $(this).removeAttr("disabled");
+            }
+          });
+      });
+});
  </script>
 </body>
 </html>
