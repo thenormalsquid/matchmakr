@@ -25,8 +25,13 @@ TODO:
 		-  once loading completed, redirect to results page
 - [X] TOS
 - [X] Privacy Policy
-- [ ] migrate to ec2
-- [ ] setup nginx to handle static files
+- [X] migrate to ec2
+- [X] setup nginx to handle static files
+- [ ] Put pseudocode into action
+- [ ] Make pages for each error response
+- [ ] 599 timeouts
+- [ ] 404 
+- [ ] 403
 
 
 ##Luqmaan
