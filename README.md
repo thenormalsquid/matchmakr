@@ -27,11 +27,8 @@ TODO:
 - [X] Privacy Policy
 - [X] migrate to ec2
 - [X] setup nginx to handle static files
-- [ ] Put pseudocode into action
-- [ ] Make pages for each error response
-- [ ] 599 timeouts
-- [ ] 404 
-- [ ] 403
+- [X] Put pseudocode into action
+- [X] Make pages for each error response
 
 
 ##Luqmaan
