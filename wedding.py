@@ -79,6 +79,7 @@ class Application(tornado.web.Application):
 class IndexHandler(tornado.web.RequestHandler):
 
     def get(self):
+        logging.info(self.request.headers)
         self.render("index.html")
 
 
