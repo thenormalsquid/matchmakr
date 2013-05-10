@@ -1,63 +1,63 @@
 {% extends "layout.html" %}
 {% block body %}
 <h2>Your Top Match</h2>
-<div class="span4 offset2">
-    <h3>{{escape(current_user["name"])}}</h3>
-    <a href="https://facebook.com/{{escape(current_user["id"])}}" target="_blank">
-        <img src="//graph.facebook.com/{{escape(current_user["id"])}}/picture?width=200&height=200">
-    </a>
+<div class="top-match">
+	<div class="row-fluid">
+		{% if top_match %}
+		  {% module Partner(current_user, "offset3") %}
+		  {% module Partner(top_match) %}
+			<div class="span2 interests">
+					<h4>Interests you share</h4>
+					<ul class="common-interests">
+						{% for i in likes %}
+							<li><a href="http://facebook.com/{{_(i)}}" target="_blank">{{_(likes[i])}}</a></li>
+						{% end %}
+					</ul>
+				</div>
+			</div>
+		{% else %}
+			<h1>Uh oh! We couldn't find a match for you!</h1>
+			<h2>You should get a social life, make friends, and find new interests.</h2>
+		{% end %}
+	</div>
 </div>
-{% end %}
-
-{% block match %}
-{% if top_match != None %}
-  {% module Partner(top_match) %}
-{% else %}
-	<h1>Uh oh! We couldn't find a match for you!</h1>
-	<h2>You should get a social life, make friends, and find new interests.</h2>
-{% end %}
 {% end %}
 
 {% block data %}
-{% if top_match != None %}
-<div class="row">
-<div class="offset4">
-	<h4>Some interests you share</h4>
-	<ul class="common-interests">
-		{% for i in likes %}
-			<li><a href="http://facebook.com/{{_(i)}}" target="_blank">{{_(likes[i])}}</a></li>
-		{% end %}
-	</ul>
-</div>
-</div>
-	<a href="#" class="show_hide btn btn-large btn-block btn-info span4">View the Contenders</a>
-	<a href="#" class="show_hide2 btn btn-large btn-block btn-info span4 pull-right">I like to homewreck</a>
-{% end %}
-{% end %}
-
-
-{% block contend_list %}
-	{% if contenders != None %}
-		{% for e in contenders %}
-			{% set p = contenders[e] %}
-			<div class="row">
-			<div class="span4">
-			     <h3>{{escape(p["name"])}}</h3>
-			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
-			    	<img src="//graph.facebook.com/{{escape(p["id"])}}/picture?width=200&height=200">
-			    </a>
-			    <div class="contender-interests">
-			    	<h4>Some interests you share</h4>
-			    	<ul>
-			    		{% for id in p["likes"] %}
-			    			{% set name = p["likes"][id] %}
-			    			<li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
-			    		{% end %}
-			    	</ul>
-			    </div>
+	{% if top_match %}
+		<div class="more">
+			<div class="row-fluid">
+				<a href="#" class="show_hide contenders span4 offset4 btn btn-large btn-block btn-info">View {{ top_match["name"] }}'s contenders</a>
+			</div>
+			<div class="row-fluid">
+				<a href="#" class="show_hide2 homewreck span4 offset4 btn btn-large btn-block btn-info">I like to homewreck</a>
 			</div>
 		</div>
-		{% end %}
+	{% end %}
+{% end %}
+
+{% block contend_list %}
+	{% if contenders %}
+		<div class="row-fluid">
+			{% for e in contenders %}
+				{% set css = "" %}
+
+				{### big chang, can you make this happen plz ###}
+				{### this psuedocode is to display the faces with the correct offset and on new rows as needed ###}
+
+				{# if e % 5 is 0  #}
+					{# if e > 0 #}
+						{# </div> #}
+						{# if contenders.length - e <= 5 #}
+							{# css="offset" + contenders.length - e }
+					{# <div class="row-fluid"> #}
+				{# endif #}
+
+				{% set p = contenders[e] %}
+			    {% module Partner(p, css, interests=True) %}
+
+			{% end %}
+		</div>
 	{% end %}
 {% end %}
 
@@ -65,7 +65,7 @@
 	{% if homewreckers != None %}
 		{% for e in homewreckers %}
 			{% set p = homewreckers[e] %}
-			<div class="row pull-right">
+			<div class="row-fluid pull-right">
 			<div class="span4">
 			     <h3>{{escape(p["name"])}}</h3>
 			    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">

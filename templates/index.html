@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<div class="row-fluid form-page">
     <div class="span2 offset3">
         <h3>{{ escape(current_user["name"]) }}</h3>
         <a href="https://facebook.com/{{ escape(current_user["id"]) }}" target="_blank">
@@ -27,4 +28,5 @@
             </form>
         </div>
     {% end %}
+</div>
 {% end %}

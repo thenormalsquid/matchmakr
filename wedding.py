@@ -466,8 +466,11 @@ class TermsHandler(BaseHandler):
 
 class PartnerModule(tornado.web.UIModule):
 
-    def render(self, top_match):
-        return self.render_string("modules/partner.html", top_match=top_match)
+    def render(self, partner, css="", interests=False):
+        return self.render_string("modules/partner.html",
+                                  partner=partner,
+                                  css=css,
+                                  interests=interests)
 
 
 class ContenderModule(tornado.web.UIModule):
