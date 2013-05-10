@@ -1,6 +1,7 @@
 import random
 from threading import Thread, Event
 from Queue import Queue
+import logging
 import sys
 import time
 import os.path
@@ -13,7 +14,6 @@ import tornado.web
 import tornado.log
 import tornado.gen
 import tornadoredis
-import logging
 
 from tornado.escape import to_unicode, json_decode, native_str, json_encode
 
@@ -69,7 +69,7 @@ class Application(tornado.web.Application):
             ui_modules={
                 "Partner": PartnerModule, "Contender": ContenderModule},
             debug=True,
-            autoescape=None,
+            autoescape=None
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
@@ -144,7 +144,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def get(self):
         pipe = c.pipeline()
         access_token = self.current_user["access_token"]
-        print "%s connected" % self.current_user["name"]
+        logging.info("%s connected" % self.current_user["name"])
         pipe.hexists("users:%s" % self.current_user["id"], "attracted_to")
         pipe.exists("users:%s" % self.current_user["id"])
         pipe.exists("user:%s" % self.current_user["id"])
@@ -162,13 +162,8 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         else:
             self.display(True)
 
-    def get_friends(self, d):
-        print d
-
     def get_user(self, d):
-        print "inside get_user"
         self.make_user(d)
-        print "exit get_user"
 
     # render form, or not to render form
     @tornado.web.asynchronous
@@ -187,7 +182,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             pipe.hset("users:%s" % self.current_user[
                       "id"], "attracted_to", self.interested_in)
             yield tornado.gen.Task(pipe.execute)
-        print "updated interested in"
+        logging.info("updated interested in")
         self.render("index.html", form=False)
 
     @tornado.web.asynchronous
@@ -198,7 +193,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         if 'interested_in' not in d:
             new["gender"] = d["gender"]
             self.create_user(d, new)
-            print "exit make_user"
         elif 'gender' not in d:
             new["gender"] = None
             self.create_user(d, new)
@@ -206,7 +200,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             new["gender"] = d["gender"]
             new["interested_in"] = d["interested_in"]
             self.create_user(d, new)
-            print "exit make_user"
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -215,7 +208,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         with c.pipeline() as pipe:
             pipe.hmset("users:%s" % (d["id"]), n)
             yield tornado.gen.Task(pipe.execute)
-        print "Posted %s to redis" % (self.current_user["name"])
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -230,7 +222,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 elif isinstance(e, list):
                     for h in e:
                         pipe.lpush("user:%s" % d["id"], h["id"])
-            print "posted %s \'s likes to redis" % self.current_user["name"]
             yield tornado.gen.Task(pipe.execute)
 
 
@@ -259,27 +250,22 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def get_sports(self, d):
         self.set_base_data(
             d, "favorite_teams", "favorite_athletes", "sports")
-        print "collected sports"
 
     @tornado.gen.coroutine
     def get_tv(self, d):
         self.set_connect_data(d, "television")
-        print "added tv likes to redis"
 
     @tornado.gen.coroutine
     def get_interests(self, d):
         self.set_connect_data(d, "interests")
-        print "added interests likes to redis"
 
     @tornado.gen.coroutine
     def get_music(self, d):
         self.set_connect_data(d, "music")
-        print "added music"
 
     @tornado.gen.coroutine
     def get_movies(self, d):
         self.set_connect_data(d, "movies")
-        print "movies added"
 
     @tornado.gen.coroutine
     def get_friends(self):
@@ -289,9 +275,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     def smack(self, d):
         return d
-
-    def on_finish(self):
-        print "fds"
 
     @tornado.gen.coroutine
     def get_books_games(self, d):
@@ -313,7 +296,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                         pipe.hmset("people:%s" % i["id"], i)
             pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
             yield tornado.gen.Task(pipe.execute)
-        print "collected friends"
 
     @tornado.gen.coroutine
     def set_base_data(self, d, *args):
@@ -335,7 +317,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                       "id"], homewreck_gender, "homewreck"), e["id"])
         yield tornado.gen.Task(pipe.execute)
         b.set_progress(20)
-        print "added likes to redis"
 
     @tornado.gen.coroutine
     def set_connect_data(self, d, *args):
@@ -361,7 +342,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                 i["id"], homewreck_gender), f["id"])
         yield tornado.gen.Task(pipe.execute)
         b.set_progress(20)
-        print "added connect likes to redis"
 
 
 class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -470,7 +450,6 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             pipe.zadd("match:%s:homewreck" %
                       self.current_user["id"],  hl.count(j), j)
         yield tornado.gen.Task(pipe.execute)
-        print "ready to go"
 
 
 
