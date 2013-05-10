@@ -9,11 +9,14 @@
 	</div>
     </a>
     {% if interests %}
-        <ul class="interests">
-            {% for id in partner["likes"] %}
-                {% set name = partner["likes"][id] %}
-                <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
-            {% end %}
-        </ul>
+	<div class="interests">
+	    <h4>Shared interests</h4>
+	    <ul>
+		{% for id in partner["likes"] %}
+		    {% set name = partner["likes"][id] %}
+		    <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+		{% end %}
+	    </ul>
+	</div>
     {% end %}
 </div>

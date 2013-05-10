@@ -1,6 +1,6 @@
 // Some general UI pack related JS
 
-$(function () {
+$(function() {
     // Custom selects
     $("select").dropkick();
 });
@@ -23,7 +23,7 @@ $(document).ready(function() {
         max: 5,
         value: 2,
         orientation: "horizontal",
-        range: "min",
+	range: "min"
     });
 
     // JS input/textarea placeholder
@@ -44,25 +44,23 @@ $(document).ready(function() {
 
     // Disable link click not scroll top
     $("a[href='#']").click(function() {
-        return false
+	return false;
     });
 
 });
 
 $(document).ready(function() {
-            $(".contend-list").hide();
-            $(".show_hide").show();
-        $('.show_hide').click(function(){
+    $(".show_hide").show();
+    $('.show_hide').click(function() {
         $(".contend-list").slideToggle();
-        });
+    });
 
 
-            $(".homewreck-list").hide();
-            $(".show_hide2").show();
-        $('.show_hide2').click(function(){
+    $(".homewreck-list").hide();
+    $(".show_hide2").show();
+    $('.show_hide2').click(function() {
         $(".homewreck-list").slideToggle();
-        });
+    });
 
 
 });
-

@@ -19,6 +19,7 @@ body
     padding: 20px
     background: $masthead
     h1
+<<<<<<< HEAD
         img
             margin-right: 10px
         margin: 0
@@ -42,6 +43,29 @@ body
         width: 90px
         &:hover
             background: lighten($masthead, 10%)
+=======
+	margin: 0
+	a
+	    color: $lightgray
+	    text-decoration: none
+	    &:hover
+		color: lighten($masthead, 30%)
+    .profile
+	height: 50px
+	width: 50px
+	background-repeat: no-repeat
+	background-position: center center
+	float: left
+	border-radius: 5px
+    .btn
+	background: darken($masthead, 10%)
+	float: left
+	margin-left: 10px
+	margin-top: 2px
+	width: 90px
+	&:hover
+	    background: lighten($masthead, 10%)
+>>>>>>> Got rid of background colors
 
 
 
@@ -119,11 +143,19 @@ h2
             border-top-right-radius: 10px
             height: 90px
             +transition(all 0.3s ease-in-out)
+<<<<<<< HEAD
             +background(linear-gradient(rgba(0,0,0,0), $tile))
             &.no-interests
                 border-radius: 10px
                 height: 60px
                 +background(linear-gradient(rgba(0,0,0,0), darken($base, 10%)))
+=======
+	    +background(linear-gradient(rgba(0,0,0,0), $tile))
+            &.no-interests
+                border-radius: 10px
+                height: 60px
+		+background(linear-gradient(rgba(0,0,0,0), darken($base, 10%)))
+>>>>>>> Got rid of background colors
             position: absolute
             bottom: 0
             width: 100%
@@ -133,13 +165,20 @@ h2
                 padding-left: 10px
                 padding-bottom: 10px
                 font-size: 20px
+<<<<<<< HEAD
                 color: $white
                 line-height: 22px
                 text-shadow: 1px 1px 30px #000
+=======
+		color: $white
+                line-height: 22px
+		text-shadow: 1px 1px 30px #000
+>>>>>>> Got rid of background colors
                 margin: 0
                 +transition(all 0.3s ease-in-out)
         &:hover
             background-size: 110%
+<<<<<<< HEAD
             box-shadow: inset 0px 0px 10px #000
     &.small
         width: 100px
@@ -160,6 +199,28 @@ h2
             &:hover
                 color: $firm
                 text-decoration: underline
+=======
+	    box-shadow: inset 0px 0px 10px #000
+    &.small
+	width: 100px
+
+    .interests
+        margin-bottom: 10px
+	margin-left: 10px
+	h4
+	    margin: 0
+	    color: darken($tile, 30%)
+	ul
+	    margin: 0
+	li
+	    list-style: none
+        a
+	    color: saturate(darken($tile, 25%), 10%)
+	    +transition(all 0.3s ease-in-out)
+	    &:hover
+		color: $firm
+		text-decoration: underline
+>>>>>>> Got rid of background colors
 
 .more
     margin-top: 20px
@@ -167,14 +228,21 @@ h2
     .btn
         margin-bottom: 10px
     .homewreck-btn
+<<<<<<< HEAD
         background: $pomegranate !important
         &:hover
             background: $alizarin !important
+=======
+	background: $pomegranate !important
+        &:hover
+	    background: $alizarin !important
+>>>>>>> Got rid of background colors
 
 .top-match
     margin: 0 -20px
     padding: 20px
     h2, h3, h4, li
+<<<<<<< HEAD
         color: $firm
     .interests
         margin-top: 20px
@@ -183,10 +251,24 @@ h2
         li, a
             list-style: none
             color: darken($base, 10%)
+=======
+	color: $firm
+    .interests
+	margin-top: 20px
+	ul
+	    margin-left: 10px
+	li, a
+	    list-style: none
+	    color: darken($base, 10%)
+>>>>>>> Got rid of background colors
 
 
 .contenders
     margin: 0 -20px
     padding: 20px
     h2, li
+<<<<<<< HEAD
         color: $peterriver
+=======
+	color: $peterriver
+>>>>>>> Got rid of background colors
