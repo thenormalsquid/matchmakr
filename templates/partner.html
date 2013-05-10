@@ -39,19 +39,23 @@
 {% block contend_list %}
 	{% if contenders %}
 		<div class="row-fluid">
+			{% set count = 0 %}
 			{% for e in contenders %}
 				{% set css = "" %}
+				{% set count += 1 %}
 
 				{### big chang, can you make this happen plz ###}
 				{### this psuedocode is to display the faces with the correct offset and on new rows as needed ###}
 
-				{# if e % 5 is 0  #}
-					{# if e > 0 #}
-						{# </div> #}
-						{# if contenders.length - e <= 5 #}
-							{# css="offset" + contenders.length - e }
-					{# <div class="row-fluid"> #}
-				{# endif #}
+				{% if count % 5 is 0  %}
+					{% if count > 0 %}
+						</div> 
+						{% if len(contenders) - count <= 5 %}
+							{% set css="offset" + str(len(contenders) - count) %}
+					 <div class="row-fluid"> 
+					 	{% end %}
+					 {% end %}
+				{% end %}
 
 				{% set p = contenders[e] %}
 			    {% module Partner(p, css, interests=True) %}
