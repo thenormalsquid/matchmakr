@@ -1,38 +1,30 @@
 {% extends "layout.html" %}
 {% block body %}
-    <div class="span4 offset2">
+    <div class="span2 offset3">
         <h3>{{ escape(current_user["name"]) }}</h3>
         <a href="https://facebook.com/{{ escape(current_user["id"]) }}" target="_blank">
             <img src="//graph.facebook.com/{{ escape(current_user["id"]) }}/picture?width=200&height=200">
         </a>
     </div>
-{% end %}
-{% block form %}
-    {% if form == True %}
-        <div class="row">
-            <div class="span4">
-                <h4>What are you interested in?</h4>
-                <form action="" method="post">
-                    <label class="radio"><input id="optionsRadios1" name="optionsRadios" type="radio" value="female"> Girls</label>
-                    <label "radio"><input id="optionsRadios2" name="optionsRadios" type="radio" value="male"> Guys</label>
-                    <input "btn btn-large btn-block btn-inverse" name="submit" type="submit" value="Set your interest">
-                    {% module xsrf_form_html() %}
-                </form>
-            </div>
+    {% if form %}
+        <div class="span4 form-div form-gender">
+            <h4>What are you interested in?</h4>
+            <form action="" method="post">
+                <label class="radio"><input id="optionsRadios1" name="optionsRadios" type="radio" value="female"> Girls</label>
+                <label "radio"><input id="optionsRadios2" name="optionsRadios" type="radio" value="male"> Guys</label>
+                <input "btn btn-large btn-block btn-inverse" name="submit" type="submit" value="Set your interest">
+                {% module xsrf_form_html() %}
+            </form>
         </div>
     {% else %}
-        <div class="row">
-            <img class="loading" src="static/images/ajax-loader.gif">
-            <div class="span4">
-                <p style="text-align:center;margin-right:65px;">Let our algorithm</p>
-            </div>
-            <div class="span3">
-                <!-- need to disable after clicking submit -->
-                <form action="/love" method="post">
-                    <input class="btn btn-large btn-block btn-danger submit-scrape" type="submit" value="Find your perfect match">
-                    {% module xsrf_form_html() %}
-                </form>
-            </div>
+        <div class="span4 form-div form-start">
+            <p class="loading"><img src="static/images/ajax-loader.gif"></p>
+            <p class="message">Let our algorithm</p>
+            <!-- need to disable after clicking submit -->
+            <form action="/love" method="post">
+                <input class="btn btn-large btn-block btn-danger submit-scrape" type="submit" value="Start finding your perfect match">
+                {% module xsrf_form_html() %}
+            </form>
         </div>
     {% end %}
 {% end %}

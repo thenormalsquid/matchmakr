@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="static/css/flat-ui.css" />
     <link rel="stylesheet" href="static/css/screen.css" />
     <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div class="container-fluid">
@@ -37,8 +38,6 @@
          {% end %}
         </div>
        </div>
-         {% block form %}
-         {% end %}
     {% else %}
       {% include 'home.html' %}
     {% end %}
@@ -62,35 +61,6 @@
  <script type="text/javascript" src="static/js/application.js"></script>
  <script type="text/javascript" src="static/js/bootstrap-tooltip.js"></script>
  <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
- <script type="text/javascript"> 
- $(function() {
-    $(".loading").hide();
-    $(".submit-scrape").click(function() {
-        // Disable the submit button
-        $(this).attr("disabled", "disabled");
-
-        // Show the loading image
-        //in the styles, should set background image as /images/ajax-loader.gif
-        $(".loading").show();
-
-        // Serialize the form values for AJAX submission
-        var $formParamsString = $(this).closest("form").serialize();
-
-        $.ajax({
-            type: "POST",
-            url: "/love",
-            data: $formParamsString,
-            success: function(data) {
-              location.href = "/yourmatches"
-            },
-            error: function() {
-              //firefox hack
-              $(".loading").show();
-              $(this).removeAttr("disabled");
-            }
-          });
-      });
-});
- </script>
+ <script type="text/javascript" src="static/js/main.js"></script>
 </body>
 </html>

@@ -192,44 +192,50 @@ body {
 }
 
 /* line 17, ../sass/screen.sass */
-.container {
-  background-color: #a5d232;
-}
-
-/* line 20, ../sass/screen.sass */
 .footer {
   margin-top: 20px;
   text-align: center;
 }
 
-/* line 24, ../sass/screen.sass */
+/* line 21, ../sass/screen.sass */
 .hero {
   padding: 15px 0 0;
   text-align: center;
 }
-/* line 27, ../sass/screen.sass */
+/* line 24, ../sass/screen.sass */
 .hero h1 {
   font-size: 65px;
   text-shadow: 0 -1px white;
 }
-/* line 30, ../sass/screen.sass */
+/* line 27, ../sass/screen.sass */
 .hero h3 {
   color: #df304e;
 }
-/* line 32, ../sass/screen.sass */
+/* line 29, ../sass/screen.sass */
 .hero .img-logo {
   width: 350px;
   margin-bottom: -45px;
 }
 
-/* line 36, ../sass/screen.sass */
+/* line 33, ../sass/screen.sass */
 .signin {
   margin-bottom: 20px;
 }
 
-/* line 41, ../sass/screen.sass */
+/* line 38, ../sass/screen.sass */
 .hero-tiles .tile-image {
   height: 75px;
   margin-top: 16px;
   margin-bottom: 15px;
+}
+
+/* line 45, ../sass/screen.sass */
+.form-div .loading {
+  float: right;
+  width: 130px;
+  display: none;
+}
+/* line 50, ../sass/screen.sass */
+.form-div .form-start {
+  padding-top: 80px;
 }
