@@ -1,42 +1,38 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="span4 offset2">
-    <h3>{{escape(current_user["name"])}}</h3>
-    <a href="https://facebook.com/{{escape(current_user["id"])}}" target="_blank">
-        <img src="//graph.facebook.com/{{escape(current_user["id"])}}/picture?width=200&height=200">
-    </a>
-</div>
+    <div class="span4 offset2">
+        <h3>{{ escape(current_user["name"]) }}</h3>
+        <a href="https://facebook.com/{{ escape(current_user["id"]) }}" target="_blank">
+            <img src="//graph.facebook.com/{{ escape(current_user["id"]) }}/picture?width=200&height=200">
+        </a>
+    </div>
 {% end %}
 {% block form %}
- {% if form == True %}
- <div class="span4">
-     <h4>What are you interested in?</h4>
-     <form action="" method="post">
-         <label class="radio">
-            <input type="radio" name="optionsRadios" id="optionsRadios1" value="female" >
-                Girls
-         </label>
-         <label class="radio">
-            <input type="radio" name="optionsRadios" id="optionsRadios2" value="male" >
-                Guys
-         </label>
-        <input type="submit" name="submit" value="Set your interest" class="btn btn-large btn-block btn-inverse">
-        {% module xsrf_form_html() %}
-     </form>
- </div>
- {% else %}
-     <img class="loading" src="static/images/ajax-loader.gif">
-     <div class="span4">
-        <h2 style="margin-left:10px;">Welcome {{escape(current_user["name"])}},</h2>
-        <p style="text-align:center;margin-right:65px;">Let our algorithm</p>
-    </div>
-    <div class="span3">
-        <!-- need to disable after clicking submit -->
-        <form action="/love" method="post">
-            <input type="submit" class="btn btn-large btn-block btn-danger submit-scrape" value="Find your perfect match">
-            {% module xsrf_form_html() %}
-        </form>
-       </div>
-     {% end %}
+    {% if form == True %}
+        <div class="row">
+            <div class="span4">
+                <h4>What are you interested in?</h4>
+                <form action="" method="post">
+                    <label class="radio"><input id="optionsRadios1" name="optionsRadios" type="radio" value="female"> Girls</label>
+                    <label "radio"><input id="optionsRadios2" name="optionsRadios" type="radio" value="male"> Guys</label>
+                    <input "btn btn-large btn-block btn-inverse" name="submit" type="submit" value="Set your interest">
+                    {% module xsrf_form_html() %}
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <img class="loading" src="static/images/ajax-loader.gif">
+            <div class="span4">
+                <p style="text-align:center;margin-right:65px;">Let our algorithm</p>
+            </div>
+            <div class="span3">
+                <!-- need to disable after clicking submit -->
+                <form action="/love" method="post">
+                    <input class="btn btn-large btn-block btn-danger submit-scrape" type="submit" value="Find your perfect match">
+                    {% module xsrf_form_html() %}
+                </form>
+            </div>
+        </div>
+    {% end %}
 {% end %}
-  

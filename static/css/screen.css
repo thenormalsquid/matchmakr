@@ -177,38 +177,59 @@
 }
 
 /* line 9, ../sass/screen.sass */
+.alpha {
+  padding-left: 0;
+}
+
+/* line 11, ../sass/screen.sass */
+.omega {
+  padding-right: 0;
+}
+
+/* line 14, ../sass/screen.sass */
 body {
   background-color: #e8edf2;
 }
 
-/* line 12, ../sass/screen.sass */
+/* line 17, ../sass/screen.sass */
+.container {
+  background-color: #a5d232;
+}
+
+/* line 20, ../sass/screen.sass */
+.footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* line 24, ../sass/screen.sass */
 .hero {
   padding: 15px 0 0;
   text-align: center;
 }
-/* line 15, ../sass/screen.sass */
+/* line 27, ../sass/screen.sass */
 .hero h1 {
   font-size: 65px;
   text-shadow: 0 -1px white;
 }
-/* line 18, ../sass/screen.sass */
+/* line 30, ../sass/screen.sass */
 .hero h3 {
   color: #df304e;
 }
-/* line 20, ../sass/screen.sass */
+/* line 32, ../sass/screen.sass */
 .hero .img-logo {
   width: 350px;
   margin-bottom: -45px;
 }
 
-/* line 24, ../sass/screen.sass */
+/* line 36, ../sass/screen.sass */
 .signin {
-  margin: 0 0 20px;
+  margin-bottom: 20px;
 }
 
-/* line 29, ../sass/screen.sass */
+/* line 41, ../sass/screen.sass */
 .hero-tiles .tile-image {
   height: 75px;
-  width: auto;
-  margin: 16px 0 15px;
+  margin-top: 16px;
+  margin-bottom: 15px;
 }

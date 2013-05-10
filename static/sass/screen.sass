@@ -6,8 +6,20 @@
 @import '_config.sass'
 @import 'modules/palette'
 
+.alpha
+    padding-left: 0
+.omega
+    padding-right: 0
+
 body
     background-color: scale-color($base, $lightness: 90%)
+
+.container
+    background-color: rgba(165,210,50,1)
+
+.footer
+    margin-top: 20px
+    text-align: center
 
 .hero
     padding: 15px 0 0
@@ -22,11 +34,11 @@ body
         margin-bottom: -45px
 
 .signin
-    margin: 0 0 20px
+    margin-bottom: 20px
 
 
 .hero-tiles
     .tile-image
         height: 75px
-        width: auto
-        margin: 16px 0 15px
+        margin-top: 16px
+        margin-bottom: 15px
