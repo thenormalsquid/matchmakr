@@ -1,8 +1,11 @@
 $(function() {
 
-    var messages = ["le messsage 1",
-        "a funny word or two",
-        "fetching and fetching"];
+    var messages = ["Comparing the hues of your favorite color against your friends'...",
+        "Calculating how much lasagna you can eat in three days...",
+        "Questioning the meaning of life...",
+        "Reticulating splines...",
+        "Journaling hip hop music.."
+        ];
 
     function toggleMessages(i) {
         if (i >= messages.length) i = 0;
