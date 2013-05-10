@@ -83,6 +83,25 @@ class IndexHandler(tornado.web.RequestHandler):
         self.render("index.html")
 
 
+class ExceptionHandler(tornado.web.RequestHandler):
+
+     def __init__(self, application, request, status_code):
+        tornado.web.RequestHandler.__init__(self, application, request)
+        self.set_status(status_code)
+
+     def get_error_html(self, status_code, **kwargs):
+        self.require_setting("static_path")
+        if status_code in [404, 500, 503, 403]:
+            self.render("oops.html", status_code=status_code)
+        logging.error( {"code": status_code,"message": status_code})
+
+     def prepare(self):
+        raise tornado.web.HTTPError(self._status_code)
+
+
+
+
+
 class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
@@ -484,6 +503,7 @@ class ContenderModule(tornado.web.UIModule):
 
 
 def main():
+    tornado.web.ErrorHandler = ExceptionHandler
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(options.port)

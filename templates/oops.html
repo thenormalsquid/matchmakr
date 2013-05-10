@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Top Matches | Get top matches from Facebook - Something's gone wrong</title>
+    <link rel="stylesheet" href="static/css/bootstrap.css" />
+    <link rel="stylesheet" href="static/css/flat-ui.css" />
+    <link rel="stylesheet" href="static/css/ie.css" />
+    <link rel="stylesheet" href="static/css/print.css" />
+    <link rel="stylesheet" href="static/css/screen.css" />
+    <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css" />
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-40801614-1', 'mytopmatches.com');
+    ga('send', 'pageview');
+  </script>
+</head>
+
+<body>
+  <div class="container">
+  	<h2>{{_(status_code)}}<h2>
+  	<h1>Uh oh, something went wrong...</h1>
+	<h2>Take me 
+  	  {% if current_user %}
+        <a href="/main" class="error-lyrics">Home</a>
+      {% else %}
+        <a href="/" class="error-lyrics">Home</a>
+      {% end %}
+      tonight!
+    </h2>
+  	
+  	<hr>
+    <div class="footer">
+    Copyright 2013 Mytopmatches
+    <ul>
+      {% if current_user %}
+        <li><a href="/main">Home</a></li>
+      {% else %}
+        <li><a href="/">Home</a></li>
+      {% end %}
+      <li><a href="/privacy">Privacy</a></li>
+      <li><a href="/terms">Terms</a></li>
+    </ul>
+    </div>
+  </div>
+ </body>
+ </html>
