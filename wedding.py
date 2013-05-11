@@ -100,8 +100,6 @@ class ExceptionHandler(tornado.web.RequestHandler):
 
 
 
-
-
 class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
