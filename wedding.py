@@ -391,7 +391,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def get_scores(self):
         pipe = c.pipeline()
-        d = {}
+        #top match dict
         # homewrecker person dict
         dh = {}
         cont = {}
@@ -405,9 +405,12 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             person = yield tornado.gen.Task(c.hgetall, "people:%s" % top)
             likes = yield tornado.gen.Task(c.smembers, "matches:%s:%s" % (top, self.current_user["id"]))
             hlikes = yield tornado.gen.Task(c.smembers, "matches:%s:%s:homewreck" % (top, self.current_user["id"]))
+            top_match = person
+            top_match["likes"] = {}
             for i in likes:
                 name = yield tornado.gen.Task(c.hget, "%s" % i, "name")
-                d[i] = name
+                top_match["likes"][i] = name
+            print top_match
             for h in hlikes:
                 name = yield tornado.gen.Task(c.hget, "%s" % h, "name")
                 dh[h] = name
@@ -429,10 +432,10 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                         hname2 = yield tornado.gen.Task(c.hget, "%s" % hlike, "name")
                         hcont[j]["likes"][hlike] = hname2
                 self.render(
-                    "partner.html", top_match=person, likes=d, contenders=cont, homewreckers=hcont)
+                    "partner.html", top_match=top_match, contenders=cont, homewreckers=hcont)
             else:
                 self.render(
-                    "partner.html", top_match=person, likes=d, contenders=None, homewreckers=None)
+                    "partner.html", top_match=top_match, contenders=None, homewreckers=None)
         except IndexError:
             self.render(
                 "partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
