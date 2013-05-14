@@ -448,6 +448,10 @@ h2 {
   background-color: #d2dde9;
   padding-top:7px;
   padding-bottom: 25px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
 .top-info .top-pic{
@@ -499,3 +503,22 @@ h2 {
   color: #1abc9c;
   text-decoration: underline;
 }
+
+.form-page{
+  margin-top:10%;
+}
+
+.form-div{
+  margin:0;
+  display:block;
+}
+
+.form-gender .radio{
+  font-size: 20px;
+  margin: 7% 0 0 0;
+}
+
+.form-gender .btn{
+  margin-top:11%;
+}
+
