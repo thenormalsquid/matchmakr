@@ -437,9 +437,11 @@ h2 {
   margin: 0 -20px;
   padding: 20px;
 }
+
+
 /* line 177, ../sass/screen.sass */
 .top-match h2, .top-match h3, .top-match h4, .top-match li {
-  color: #1abc9c;
+  color: #c0392b;
 }
 /* line 179, ../sass/screen.sass */
 .top-match .interests {
@@ -463,4 +465,13 @@ h2 {
 /* line 191, ../sass/screen.sass */
 .contenders h2, .contenders li {
   color: #3498db;
+}
+
+/*thien*/
+.top-person{
+  padding-left:9%;
+}
+
+.top-contenders{
+  margin-bottom:35px;
 }

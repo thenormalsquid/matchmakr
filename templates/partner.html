@@ -2,26 +2,17 @@
 {% block body %}
 {% if top_match %}
 <div class="top-match">
-	<h2>Your Top Match</h2>
-</div>
+	<h2>My Top Match</h2>
 <div class="row-fluid">
-   {% module Partner(top_match, interests=True) %} 
+    <div class="span12 offset4 top-person">
+     {% module Partner(top_match, interests=True) %} 
+    </div>
 {% else %}
     <h1>Uh oh! We couldn't find a match for you!</h1>
     <h2>You should get a social life, make friends, and find new interests.</h2>
+{% end %}
 </div>
-{% end %}
-{% end %}
-
-{% block data %}
-    {% if top_match %}
-        <div class="more">
-  
-            <div class="row-fluid">
-                <a href="#" class="show_hide2 homewreck-btn span4 offset4 btn btn-large btn-block btn-info">I like to homewreck</a>
-            </div>
-        </div>
-    {% end %}
+</div>
 {% end %}
 
 {% block contend_list %}
@@ -33,9 +24,7 @@
 	        <div class="row-fluid">
 	            {% set i = 0 %}
 	            {% for e in contenders %}
-
                     {% set css = "" %}
-
                     {% if i % 3 == 0 %}
                         {% if i > 2 %}
                             </div>
@@ -48,17 +37,24 @@
 		                    </div>
 	                    {% end %}
 	                    {% set css="offset3" %}
-	                    <div class="row-fluid">
+	                    <div class="row-fluid top-contenders">
 	                {% end %}
-
                     {% set p = contenders[e] %}
                     {% module Partner(p, css, interests=True) %}
-
                     {% set i = i+1 %}
-
 	            {% end %}
-	        </div>
+	         </div>
 		</div>
+    {% end %}
+{% end %}
+
+{% block data %}
+    {% if top_match %}
+        <div class="more">
+            <div class="row-fluid">
+                <a href="#" class="show_hide2 homewreck-btn span4 offset4 btn btn-large btn-block btn-info">I like to homewreck</a>
+            </div>
+        </div>
     {% end %}
 {% end %}
 

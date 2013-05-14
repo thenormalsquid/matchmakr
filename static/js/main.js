@@ -1,7 +1,7 @@
 $(function() {
 
-    var messages = ["Comparing the hues of your favorite color with your eyes'...",
-        "Calculating how much lasagna you can eat in three days...",
+    var messages = ["Comparing the hue of your favorite color with your match's eyes...",
+        "Comparing how much lasagna both of you can eat in three days...",
         "Questioning the meaning of life...",
         "Reticulating splines...",
         "Journaling hip hop music..",
@@ -39,7 +39,7 @@ $(function() {
             url: "/love",
             data: $formParamsString,
             success: function(data) {
-                location.href = "/yourmatches";
+                location.href = "/mymatches";
             },
             error: function() {
                 //firefox hack

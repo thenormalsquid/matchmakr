@@ -161,18 +161,19 @@
 
 <div class="privacy-update">This document was last updated on May 09, 2013</div>
   	<hr>
-    <div class="footer">
-    Copyright 2013 Mytopmatches
+    <div class="row-fluid footer">
+   	<div>
+    Copyright 2013 Mytopmatches<br/ >
     <ul>
       {% if current_user %}
         <li><a href="/main">Home</a></li>
       {% else %}
         <li><a href="/">Home</a></li>
       {% end %}
-      <li><a href="/privacy">Privacy</a></li>
-      <li><a href="/terms">Terms</a></li>
-    </ul>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+     </ul>
+      </div>
     </div>
-  </div>
    </body>
  </html>

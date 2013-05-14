@@ -52,7 +52,7 @@ class Application(tornado.web.Application):
             (r"/main", MainHandler),
             (r"/love", ScrapeHandler),
             (r"/thinkingloudly", LoadingHandler),
-            (r"/yourmatches", CalculatedHandler),
+            (r"/mymatches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
@@ -257,7 +257,7 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def post(self):
         yield [tornado.gen.Task(self.get_friends), self.get_things()]
-        self.redirect("/yourmatches")
+        self.redirect("/mymatches")
 
     @tornado.gen.coroutine
     def get_things(self):
@@ -410,7 +410,6 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             for i in likes:
                 name = yield tornado.gen.Task(c.hget, "%s" % i, "name")
                 top_match["likes"][i] = name
-            print top_match
             for h in hlikes:
                 name = yield tornado.gen.Task(c.hget, "%s" % h, "name")
                 dh[h] = name
