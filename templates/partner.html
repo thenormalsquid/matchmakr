@@ -46,7 +46,7 @@
                         <div class="row-fluid">
                     {% end %}
 	                {% if i % 3 == 0 %}
-			    {% if i > 2 %}
+			         {% if i > 2 %}
 		                    </div>
 	                    {% end %}
 	                    {% set css="offset3" %}
@@ -73,26 +73,31 @@
 
 {% block homewrecker_list %}
     {% if homewreckers != None %}
+    <div class="homewrecker-list">
+        <div class="row-fluid">
+        {% set i = 0 %}
         {% for e in homewreckers %}
-            {% set p = homewreckers[e] %}
-            <div class="row-fluid pull-right">
-                <div class="span4">
-                     <h3>{{escape(p["name"])}}</h3>
-                    <a href="https://facebook.com/{{escape(p["id"])}}" target="_blank">
-                        <img src="//graph.facebook.com/{{escape(p["id"])}}/picture?width=200&height=200">
-                    </a>
-                    <div class="homewrecker-interests">
-                        <h4>Some interests you share</h4>
-                        <ul>
-                            {% for id in p["likes"] %}
-                                {% set name = p["likes"][id] %}
-                                <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
-                            {% end %}
-                        </ul>
+         {% set css = "" %}
+            {% if i % 3 == 0 %}
+                {% if i > 2 %}
                     </div>
+                {% end %}
+                {% set css="offset3" %}
+                    <div class="row-fluid">
+            {% end %}
+            {% if i % 3 == 0 %}
+                {% if i > 2 %}
+                    </div>
+                {% end %}
+                {% set css="offset3" %}
+                    <div class="row-fluid top-contenders">
+            {% end %}
+                {% set p = homewreckers[e] %}
+                {% module Partner(p, css, interests=True)%}
+                {% set i = i+1 %}
+                {% end %}    
                 </div>
             </div>
-        {% end %}
     {% else %}
         <div class="homewrecker-interests">
             <p>You weren't matched with anybody that is married or in a relationship. Temptation averted.</p>
