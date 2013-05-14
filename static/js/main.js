@@ -1,12 +1,14 @@
 $(function() {
 
     var messages = ["Comparing the hue of your favorite color with your match's eyes...",
+        "Delivering cookies to orphaned pelicans...",
         "Comparing how much lasagna both of you can eat in three days...",
         "Questioning the meaning of life...",
-        "Reticulating splines...",
-        "Journaling hip hop music..",
+        "Judging your tastes in music...",
+        "Journaling hip hop...",
         "Does this dress make me look fat?",
-        "Peeking through your taste in movies..."
+        "Peeking through your taste in movies...",
+        "Sending particles to CERN..."
         ];
 
     function toggleMessages(i) {
