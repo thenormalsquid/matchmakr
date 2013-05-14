@@ -1,11 +1,24 @@
 {% extends "layout.html" %}
 {% block body %}
 {% if top_match %}
-<div class="top-match">
 	<h2>My Top Match</h2>
+<div class="top-match">
 <div class="row-fluid">
-    <div class="span12 offset4 top-person">
-     {% module Partner(top_match, interests=True) %} 
+    <div class="span3 offset3 top-info">
+        <div class="name">
+            <h3>{{escape(top_match["name"])}}</h3>
+        </div>
+        <a class="top-pic" style="background-image:url('//graph.facebook.com/{{escape(top_match["id"])}}/picture?width=250&height=250');" href="https://facebook.com/{{escape(top_match["id"])}}" target="_blank">
+        </a>    
+    </div>
+    <div class="span3 top-interests">
+        <h3>Shared interests</h3>
+        <ul>
+        {% for id in top_match["likes"] %}
+            {% set name = top_match["likes"][id] %}
+            <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+        {% end %}
+        </ul>
     </div>
 {% else %}
     <h1>Uh oh! We couldn't find a match for you!</h1>

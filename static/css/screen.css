@@ -432,30 +432,6 @@ h2 {
   background: #e74c3c !important;
 }
 
-/* line 174, ../sass/screen.sass */
-.top-match {
-  margin: 0 -20px;
-  padding: 20px;
-}
-
-
-/* line 177, ../sass/screen.sass */
-.top-match h2, .top-match h3, .top-match h4, .top-match li {
-  color: #c0392b;
-}
-/* line 179, ../sass/screen.sass */
-.top-match .interests {
-  margin-top: 20px;
-}
-/* line 181, ../sass/screen.sass */
-.top-match .interests ul {
-  margin-left: 10px;
-}
-/* line 183, ../sass/screen.sass */
-.top-match .interests li, .top-match .interests a {
-  list-style: none;
-  color: #222f3d;
-}
 
 /* line 188, ../sass/screen.sass */
 .contenders {
@@ -468,10 +444,57 @@ h2 {
 }
 
 /*thien*/
-.top-person{
-  padding-left:9%;
+.top-match{
+  background-color: #d2dde9;
+  padding-bottom: 25px;
+}
+
+.top-info .top-pic{
+  background-size:100%;
+  height: 0;
+  padding-bottom: 100%;
+  display: block;
+  position: relative;
+  background-repeat: no-repeat;
+  background-position: center center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.top-info .top-pic:hover {
+  background-size: 110%;
+  box-shadow: inset 0px 0px 10px black;
 }
 
 .top-contenders{
   margin-bottom:35px;
+}
+
+.top-interests{
+  padding-left: 3%;
+}
+
+.top-interests h3{
+  color: #34495e;
+}
+
+.top-interests ul{
+  margin: 0;
+}
+
+.top-interests li{
+  list-style: none;
+}
+
+.top-interests a {
+  color: #e74c3c;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.top-interests a:hover {
+  color: #1abc9c;
+  text-decoration: underline;
 }
