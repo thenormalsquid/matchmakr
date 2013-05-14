@@ -20,30 +20,32 @@
 </head>
 
 <body>
-  <div class="container">
-  	<h2>{{_(status_code)}}<h2>
-  	<h1>Uh oh, something went wrong...</h1>
-	<h2>Take me 
+  <div class="container-fluid">
+  	<h2 class="status-code">{{_(status_code)}}<h2>
+    <div class="row-fluid">
+  	  <h1 class="error-head">Uh oh, something went wrong...</h1>
+    </div>
+	<h2 class="error-song">Take me 
   	  {% if current_user %}
         <a href="/main" class="error-lyrics">Home</a>
       {% else %}
         <a href="/" class="error-lyrics">Home</a>
       {% end %}
-      tonight!
+      <a href="http://youtu.be/NbhXmSBlS_U?t=1m0s" class="error-video" target="_blank">tonight!</a>
     </h2>
   	
   	<hr>
-    <div class="footer">
-    Copyright 2013 Mytopmatches
-    <ul>
+     <div class="row-fluid">
+    <div class="span12 footer">
+    Copyright 2013 Mytopmatches<br/ >
       {% if current_user %}
-        <li><a href="/main">Home</a></li>
+        <a href="/main">Home</a>
       {% else %}
-        <li><a href="/">Home</a></li>
+        <a href="/">Home</a>
       {% end %}
-      <li><a href="/privacy">Privacy</a></li>
-      <li><a href="/terms">Terms</a></li>
-    </ul>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </div>
     </div>
   </div>
  </body>

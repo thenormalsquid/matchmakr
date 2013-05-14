@@ -445,7 +445,7 @@ h2 {
 
 /*thien*/
 .top-match{
-  background-color: #d2dde9;
+  background-color: #2C3E50;
   padding-top:7px;
   padding-bottom: 25px;
   border-top-left-radius: 10px;
@@ -479,9 +479,10 @@ h2 {
   padding-left: 3%;
 }
 
-.top-interests h3{
-  color: #34495e;
+.top-match h3{
+  color: #ECF0F1;
 }
+
 
 .top-interests ul{
   margin: 0;
@@ -492,7 +493,7 @@ h2 {
 }
 
 .top-interests a {
-  color: #e74c3c;
+  color: #1abc9c;
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;
   -o-transition: all 0.3s ease-in-out;
@@ -500,17 +501,12 @@ h2 {
 }
 
 .top-interests a:hover {
-  color: #1abc9c;
+  color: #e74c3c;
   text-decoration: underline;
 }
 
 .form-page{
   margin-top:10%;
-}
-
-.form-div{
-  margin:0;
-  display:block;
 }
 
 .form-gender .radio{
@@ -526,4 +522,31 @@ h2 {
 .number {
   font-weight: bold;
   font-size:17px;
+}
+
+.error-head{
+  color:#7F8C8D;
+  text-align: center;
+}
+
+.status-code{
+  color:#7F8C8D;
+}
+
+.error-song{
+  color:#7F8C8D;
+}
+
+.error-lyrics {
+  color:#2980B9;
+}
+
+.error-lyrics:hover{
+  color:#C0392B;
+  text-decoration: underline;
+}
+
+.error-video{
+  color:#34495E;
+  text-decoration: none;
 }
