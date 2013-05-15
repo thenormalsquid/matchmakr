@@ -68,7 +68,7 @@ class Application(tornado.web.Application):
             facebook_secret=options.facebook_secret,
             ui_modules={
                 "Partner": PartnerModule, "Contender": ContenderModule},
-            debug=True,
+            debug=False,
             autoescape=None
         )
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -262,11 +262,12 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def get_things(self):
         yield [ self.facebook_request("/me",self.get_sports, access_token = self.current_user["access_token"], fields="friends.fields(favorite_teams,favorite_athletes,sports)"),
-        self.facebook_request("/me",self.get_books_games, access_token = self.current_user["access_token"], fields="friends.fields(games,books)"),
+        self.facebook_request("/me",self.get_games, access_token = self.current_user["access_token"], fields="friends.fields(games,books)"),
         self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)"),
         self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)"),
         self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)"),
-        self.facebook_request("/me", self.get_movies, access_token = self.current_user["access_token"], fields="friends.fields(movies)"),]
+        self.facebook_request("/me", self.get_movies, access_token = self.current_user["access_token"], fields="friends.fields(movies)"),
+        self.facebook_request("/me", self.get_books,access_token = self.current_user["access_token"], fields="friends.fields(books)")]
 
     @tornado.gen.coroutine
     def get_sports(self, d):
@@ -299,8 +300,12 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         return d
 
     @tornado.gen.coroutine
-    def get_books_games(self, d):
-        self.set_connect_data(res, "games", "books")
+    def get_games(self, d):
+        self.set_connect_data(res, "games")
+
+    @tornado.gen.coroutine
+    def get_books(self, d):
+        self.set_connect_data(res, "books")
 
     @tornado.gen.coroutine
     def create_person(self, data):
