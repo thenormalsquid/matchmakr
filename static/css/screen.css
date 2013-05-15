@@ -445,13 +445,17 @@ h2 {
 
 /*thien*/
 .top-match{
-  background-color: #2C3E50;
-  padding-top:7px;
-  padding-bottom: 25px;
+  background-color: #d2dde9;
+  padding-top:10px;
+  padding-bottom: 20px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   border-bottom-left-radius: 10px;
+}
+
+.top-info{
+  margin-top:10px;
 }
 
 .top-info .top-pic{
@@ -476,10 +480,14 @@ h2 {
 }
 
 .top-interests{
-  padding-left: 3%;
+  padding-left: 1%;
 }
 
-.top-match h3{
+.top-interests h3{
+  color:#34495e;
+}
+
+.name h3{
   color: #ECF0F1;
 }
 
@@ -493,7 +501,7 @@ h2 {
 }
 
 .top-interests a {
-  color: #1abc9c;
+  color: #e74c3c;
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;
   -o-transition: all 0.3s ease-in-out;
@@ -501,7 +509,7 @@ h2 {
 }
 
 .top-interests a:hover {
-  color: #e74c3c;
+  color: #1abc9c;
   text-decoration: underline;
 }
 
