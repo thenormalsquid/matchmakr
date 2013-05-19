@@ -95,6 +95,12 @@ class ExceptionHandler(tornado.web.RequestHandler):
             self.render("oops.html", status_code=status_code)
         logging.error( {"code": status_code,"message": status_code})
 
+     def get_error_scraping(self, status_code, **kwargs):
+        self.require_setting("static_path")
+        if status_code == 599:
+            self.redirect("/mymatches")
+        logging.error({"code":status_code})
+
      def prepare(self):
         raise tornado.web.HTTPError(self._status_code)
 
@@ -262,33 +268,42 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def get_things(self):
         yield [ self.facebook_request("/me",self.get_sports, access_token = self.current_user["access_token"], fields="friends.fields(favorite_teams,favorite_athletes,sports)"),
-        self.facebook_request("/me",self.get_games, access_token = self.current_user["access_token"], fields="friends.fields(games,books)"),
-        self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)"),
-        self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)"),
+        self.facebook_request("/me",self.get_games, access_token = self.current_user["access_token"], fields="friends.fields(games)"),
+        self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)"),                
         self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)"),
         self.facebook_request("/me", self.get_movies, access_token = self.current_user["access_token"], fields="friends.fields(movies)"),
         self.facebook_request("/me", self.get_books,access_token = self.current_user["access_token"], fields="friends.fields(books)")]
+        try:
+            print "hi"
+            self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)")
+        except HTTPError:
+            self.redirect("/mymatches")
 
     @tornado.gen.coroutine
     def get_sports(self, d):
+        res = d
         self.set_base_data(
-            d, "favorite_teams", "favorite_athletes", "sports")
+            res, "favorite_teams", "favorite_athletes", "sports")
 
     @tornado.gen.coroutine
     def get_tv(self, d):
-        self.set_connect_data(d, "television")
+        res = d
+        self.set_connect_data(res, "television")
 
     @tornado.gen.coroutine
     def get_interests(self, d):
-        self.set_connect_data(d, "interests")
+        res = d
+        self.set_connect_data(res, "interests")
 
     @tornado.gen.coroutine
     def get_music(self, d):
-        self.set_connect_data(d, "music")
+        res = d
+        self.set_connect_data(res, "music")
 
     @tornado.gen.coroutine
     def get_movies(self, d):
-        self.set_connect_data(d, "movies")
+        res = d
+        self.set_connect_data(res, "movies")
 
     @tornado.gen.coroutine
     def get_friends(self):
@@ -305,6 +320,8 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     @tornado.gen.coroutine
     def get_books(self, d):
+        print "lo"
+        res = d
         self.set_connect_data(res, "books")
 
     @tornado.gen.coroutine
@@ -396,7 +413,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def get_scores(self):
         pipe = c.pipeline()
-        #top match dict
+        # top match dict
         # homewrecker person dict
         dh = {}
         cont = {}
