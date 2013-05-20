@@ -528,8 +528,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             d = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
             r.append(d)
         req =(r[i:i+groupsize] for i in xrange(0,len(r),groupsize))
-        for f in req:
-            music = yield self.facebook_request("", post_args={"batch":f}, access_token=self.current_user["access_token"])
+        yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in req]
         print "done"
         #print music
         #m = json.loads(music)
