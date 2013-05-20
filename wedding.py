@@ -1,3 +1,4 @@
+import ast
 import random
 from threading import Thread, Event
 from Queue import Queue
@@ -15,15 +16,15 @@ import tornado.log
 import tornado.gen
 import tornadoredis
 
-from tornado.escape import to_unicode, json_decode, native_str, json_encode
+from facebook import GraphAPI
 
 import settings
 from tornado.options import options
 
+import simplejson as json
 
 c = tornadoredis.Client()
 c.connect()
-
 
 class Counter(object):
 
@@ -56,6 +57,7 @@ class Application(tornado.web.Application):
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
+            (r"/batch", BatchHandler),
             (r"/terms", TermsHandler),
         ]
         settings = dict(
@@ -68,7 +70,7 @@ class Application(tornado.web.Application):
             facebook_secret=options.facebook_secret,
             ui_modules={
                 "Partner": PartnerModule, "Contender": ContenderModule},
-            debug=False,
+            debug=True,
             autoescape=None
         )
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -487,6 +489,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         yield tornado.gen.Task(pipe.execute)
         self.calculate(l, hl)
 
+
     @tornado.gen.coroutine
     def calculate(self, l, hl):
         pipe = c.pipeline()
@@ -497,6 +500,92 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                       self.current_user["id"],  hl.count(j), j)
         yield tornado.gen.Task(pipe.execute)
 
+
+
+class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+    """
+        Truncate friends into modulo sized managed arrays, 
+    """
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        res = yield self.facebook_request("/me", self.create_person,
+                                          access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
+        #self.create_person(res)
+        print res
+        yield self.friendlist(res)
+        #me = yield self.facebook_request("", post_args={'batch':[{"method":"GET","relative_url":"me"}, {"method":"GET", "relative_url":"me?fields=friends.limit(100).fields(music)"}]}, access_token=self.current_user["access_token"])
+        #print me       
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def friendlist(self, res):
+        #if else statement here to test whether friend size is larger than group or not
+        groupsize = 50
+        #turn this into a generator?
+        r = []
+        for i in res["friends"]["data"]:
+            d = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
+            r.append(d)
+        req =(r[i:i+groupsize] for i in xrange(0,len(r),groupsize))
+        for f in req:
+            music = yield self.facebook_request("", post_args={"batch":f}, access_token=self.current_user["access_token"])
+        print "done"
+        #print music
+        #m = json.loads(music)
+        #print m
+    
+        
+
+    def batched_req_gen(self, req):
+        for i in req:
+            yield i
+
+    def smack(self, data):
+        return data
+
+    @tornado.gen.coroutine
+    def create_person(self, data):
+        with c.pipeline() as pipe:
+            d = data["friends"]["data"]
+            for i in d:
+                if "relationship_status" not in i:
+                    pipe.hmset("people:%s" % i["id"], i)
+                else:
+                    rel = i["relationship_status"]
+                    if rel == "Married" or rel == "In a Relationship":
+                        # adds taken people
+                        pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
+                    elif rel == "Single" or rel == "It's Complicated":
+                        pipe.hmset("people:%s" % i["id"], i)
+            pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
+            yield tornado.gen.Task(pipe.execute)
+
+
+    @tornado.gen.coroutine
+    def set_connect_data(self, d, *args):
+        pipe = c.pipeline()
+        for f in d["friends"]["data"]:
+            for key in args:
+                if key in f:
+                    user_gender = yield tornado.gen.Task(c.hget, "people:%s" % f["id"], "gender")
+                    homewreck_gender = yield tornado.gen.Task(c.hget, "people:%s:taken" % f["id"], "gender")
+                    if user_gender:
+                        for i in f[key]["data"]:
+                        # print "likes:%s:%s:%s" %(i["id"],user_gender,i["name"])
+                        # print i.keys()
+                            if "name" not in i:
+                                continue
+                            pipe.sadd("likes:%s:%s" % (i[
+                                      "id"], user_gender), f["id"])
+                    elif homewreck_gender:
+                        for i in f[key]["data"]:
+                            if "name" not in i:
+                                continue
+                            pipe.sadd("likes:%s:%s:homewreck" % (
+                                i["id"], homewreck_gender), f["id"])
+        yield tornado.gen.Task(pipe.execute)
+        b.set_progress(20)
 
 
 class PrivacyHandler(BaseHandler):
