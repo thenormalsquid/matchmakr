@@ -264,8 +264,7 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
-        tornado.ioloop.IOLoop.instance().add_callback(self.get_friends)
-        tornado.ioloop.IOLoop.instance().add_callback(self.get_things)
+        yield [tornado.gen.Task(self.get_friends), self.get_things()]
         self.redirect("/mymatches")
 
     @tornado.gen.coroutine
