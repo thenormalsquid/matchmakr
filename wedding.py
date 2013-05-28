@@ -23,6 +23,7 @@ from tornado.options import options
 
 import simplejson as json
 
+#global redis client class
 c = tornadoredis.Client()
 c.connect()
 
@@ -96,6 +97,7 @@ class ExceptionHandler(tornado.web.RequestHandler):
         if status_code in [404, 500, 503, 403]:
             self.render("oops.html", status_code=status_code)
         logging.error( {"code": status_code,"message": status_code})
+        logging.info(self.request.headers)
 
      def get_error_scraping(self, status_code, **kwargs):
         self.require_setting("static_path")
@@ -129,6 +131,7 @@ class AuthLoginHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         my_url = (self.request.protocol + "://" + self.request.host +
                   "/auth/login?next=" +
                   tornado.escape.url_escape(self.get_argument("next", "/")))
+        logging.info(self.request.headers)
         if self.get_argument("code", False):
             self.get_authenticated_user(
                 redirect_uri=my_url,
@@ -151,6 +154,8 @@ class AuthLoginHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 class AuthLogoutHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     def get(self):
+        logging.info("%s disconnected", self.current_user["name"])
+        logging.info(self.request.headers)
         self.clear_cookie("fbdemo_user")
         self.redirect(self.get_argument("next", "/"))
 
@@ -171,6 +176,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe = c.pipeline()
         access_token = self.current_user["access_token"]
         logging.info("%s connected" % self.current_user["name"])
+        logging.info(self.request.headers)
         pipe.hexists("users:%s" % self.current_user["id"], "attracted_to")
         pipe.exists("users:%s" % self.current_user["id"])
         pipe.exists("user:%s" % self.current_user["id"])
@@ -181,7 +187,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                   access_token=access_token)
             if likes == 0:
                 self.facebook_request("/me", self.get_likes, access_token=self.current_user[
-                                      "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name)")
+                                      "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
 
             if attracted_to == 1:
                 self.display(False)
@@ -438,7 +444,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 name = yield tornado.gen.Task(c.hget, "%s" % h, "name")
                 dh[h] = name
             if len(scores) > 5:
-                for p in scores[1:6]:
+                for p in scores[1:]:
                     l = yield tornado.gen.Task(c.smembers, "matches:%s:%s" % (p, self.current_user["id"]))
                     person2 = yield tornado.gen.Task(c.hgetall, "people:%s" % p)
                     cont[p] = person2
@@ -504,7 +510,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
 class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     """
-        Truncate friends into modulo sized managed arrays, 
+        This handler stores data, not retrieve
     """
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -512,7 +518,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         res = yield self.facebook_request("/me", self.create_person,
                                           access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
         #self.create_person(res)
-        print res
         yield self.friendlist(res)
         #me = yield self.facebook_request("", post_args={'batch':[{"method":"GET","relative_url":"me"}, {"method":"GET", "relative_url":"me?fields=friends.limit(100).fields(music)"}]}, access_token=self.current_user["access_token"])
         #print me       
@@ -521,27 +526,49 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def friendlist(self, res):
         #if else statement here to test whether friend size is larger than group or not
-        groupsize = 50
-        #turn this into a generator?
+        groupsize = 30
         r = []
         for i in res["friends"]["data"]:
             d = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
             r.append(d)
         req =(r[i:i+groupsize] for i in xrange(0,len(r),groupsize))
-        yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in req]
-        print "done"
-        #print music
-        #m = json.loads(music)
-        #print m
-    
-        
+        fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in req]
+        yield tornado.gen.Task(self.batched_req_gen, fdata)
 
-    def batched_req_gen(self, req):
-        for i in req:
-            yield i
 
-    def smack(self, data):
-        return data
+    @tornado.gen.coroutine
+    def batched_req_gen(self, l):
+        #O(n^2) if we can make this O(n), it will be perfect
+        for i in l:
+            for j in i:
+                if "body" in j:
+                    d = ast.literal_eval(j["body"])
+                    if d:
+                    #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
+                        #print d
+                        yield tornado.gen.Task(self.asynch_data_handler, d, "movies","name","gender","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                    else:
+                        print "Something went wrong, retry facebook request"
+                    #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
+
+
+    #use: pass in args for data collection, ie; movie, sports, etc
+    @tornado.gen.coroutine
+    def asynch_data_handler(self, data, *args):
+        yield [tornado.gen.Task(self.asynch_data_scraper, data=data, keyword=k) for k in args]        
+
+    @tornado.gen.coroutine
+    def asynch_data_scraper(self, data, keyword, callback=None):
+        #put keyword logic here
+        if keyword in data:
+            if "relationship_status" in data:
+                print data[keyword], data["id"], data["name"], data["relationship_status"]
+            else:
+                print data[keyword], data["id"], data["name"]
+            #print data[keyword]
+        else:
+            pass
+
 
     @tornado.gen.coroutine
     def create_person(self, data):
@@ -589,11 +616,13 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
 class PrivacyHandler(BaseHandler):
     def get(self):
+        logging.info(self.request.headers)
         return self.render("privacy.html")
 
 
 class TermsHandler(BaseHandler):
     def get(self):
+        logging.info(self.request.headers)
         return self.render("terms.html")
 
 
