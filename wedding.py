@@ -96,6 +96,11 @@ class ExceptionHandler(tornado.web.RequestHandler):
 class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
+        """
+        This method is called whenever the self.current_user property is not
+        already cached. See tornado/web.py RequestHandler.current_user.
+        """
+
         user_json = self.get_secure_cookie("fbdemo_user")
         if not user_json:
             return None
