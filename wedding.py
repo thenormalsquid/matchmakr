@@ -209,26 +209,20 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
-    def make_user(self, d):
+    def make_user(self, data):
         print "inside make_user"
-        new = {"name": d["name"]}
-        if 'interested_in' not in d:
-            new["gender"] = d["gender"]
-            self.create_user(d, new)
-        elif 'gender' not in d:
-            new["gender"] = None
-            self.create_user(d, new)
-        else:
-            new["gender"] = d["gender"]
-            new["interested_in"] = d["interested_in"]
-            self.create_user(d, new)
 
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def create_user(self, d, n):
-        print "inside create_user"
+        new_user = { "name": data["name"] }
+        if 'interested_in' not in data:
+            new_user["gender"] = data["gender"]
+        elif 'gender' not in data:
+            new_user["gender"] = None
+        else:
+            new_user["gender"] = data["gender"]
+            new_user["interested_in"] = data["interested_in"]
+
         with redis.pipeline() as pipe:
-            pipe.hmset("users:%s" % (d["id"]), n)
+            pipe.hmset("users:%s" % data["id"], new_user)
             yield tornado.gen.Task(pipe.execute)
 
     @tornado.web.asynchronous
