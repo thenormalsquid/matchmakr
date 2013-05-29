@@ -27,23 +27,6 @@ import simplejson as json
 redis = tornadoredis.Client()
 redis.connect()
 
-class Counter(object):
-
-    def __init__(self):
-        self._progress = 0
-
-    def progress(self):
-        """Returns the current progress value"""
-        return self._progress
-
-    def set_progress(self, value):
-        """Sets the current progress value, passing updates to the thread"""
-
-        value = min(value, 100)
-        self._progress += value
-
-b = Counter()
-
 
 class Application(tornado.web.Application):
 
@@ -366,7 +349,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                             pipe.sadd("likes:%s:%s:%s" % (s[
                                       "id"], homewreck_gender, "homewreck"), e["id"])
         yield tornado.gen.Task(pipe.execute)
-        b.set_progress(20)
 
     @tornado.gen.coroutine
     def set_connect_data(self, d, *args):
@@ -391,7 +373,6 @@ class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                             pipe.sadd("likes:%s:%s:homewreck" % (
                                 i["id"], homewreck_gender), f["id"])
         yield tornado.gen.Task(pipe.execute)
-        b.set_progress(20)
 
 
 class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -399,7 +380,6 @@ class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-        print b.progress()
         self.write("contemplating amount of lasagnas eaten")
 
     def on_finish(self):
@@ -609,7 +589,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                             pipe.sadd("likes:%s:%s:homewreck" % (
                                 i["id"], homewreck_gender), f["id"])
         yield tornado.gen.Task(pipe.execute)
-        b.set_progress(20)
 
 
 class PrivacyHandler(BaseHandler):
