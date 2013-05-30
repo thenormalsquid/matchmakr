@@ -171,6 +171,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             token = self.current_user["access_token"]
 
             if not user_exists:
+                logging.debug("getting user info from Facebook")
                 self.facebook_request("/me", self.get_user, access_token=token)
 
             fb_like_fields = (
@@ -182,10 +183,12 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             )
 
             if not likes_exist:
+                logging.debug("getting user likes from Facebook")
                 self.facebook_request("/me", self.get_likes, access_token=token,
                                       fields=fb_like_fields)
 
             if not attraction_known:
+                logging.debug("prompting user for gender attraction")
                 self.render("index.html", show_form=True)
             else:
                 self.render("index.html", show_form=False)
