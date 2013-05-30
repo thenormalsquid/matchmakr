@@ -176,9 +176,10 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                       "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
 
             if attracted_to == 1:
-                self.display(False)
+                self.render("index.html", form=False)
             else:
-                self.display(True)
+                self.render("index.html", form=True)
+
         except ValueError:
             logging.error("too many values to unpack")
             self.redirect("/main")
@@ -186,11 +187,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     def get_user(self, d):
         self.make_user(d)
-
-    # render form, or not to render form
-    @tornado.web.asynchronous
-    def display(self, b):
-        self.render("index.html", form=b)
 
     @tornado.web.asynchronous
     def get_likes(self, d):
