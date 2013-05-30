@@ -167,18 +167,19 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe.exists("users:%s" % self.current_user["id"])
         pipe.exists("user:%s" % self.current_user["id"])
         try:
-            attracted_to, user, likes = yield tornado.gen.Task(pipe.execute)
-            if not user:
+            attraction_known, user_exists, likes_exist = yield tornado.gen.Task(pipe.execute)
+
+            if not user_exists:
                 self.facebook_request("/me", self.get_user,
                                   access_token=access_token)
-            if not likes:
+            if not likes_exist:
                 self.facebook_request("/me", self.get_likes, access_token=self.current_user[
                                       "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
 
-            if attracted_to:
-                self.render("index.html", show_form=False)
-            else:
+            if not attraction_known:
                 self.render("index.html", show_form=True)
+            else:
+                self.render("index.html", show_form=False)
 
         except ValueError:
             logging.error("too many values to unpack")
