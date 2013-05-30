@@ -168,14 +168,14 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe.exists("user:%s" % self.current_user["id"])
         try:
             attracted_to, user, likes = yield tornado.gen.Task(pipe.execute)
-            if user == 0:
+            if not user:
                 self.facebook_request("/me", self.get_user,
                                   access_token=access_token)
-            if likes == 0:
+            if not likes:
                 self.facebook_request("/me", self.get_likes, access_token=self.current_user[
                                       "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
 
-            if attracted_to == 1:
+            if attracted_to:
                 self.render("index.html", show_form=False)
             else:
                 self.render("index.html", show_form=True)
