@@ -176,9 +176,9 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                                       "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
 
             if attracted_to == 1:
-                self.render("index.html", form=False)
+                self.render("index.html", show_form=False)
             else:
-                self.render("index.html", form=True)
+                self.render("index.html", show_form=True)
 
         except ValueError:
             logging.error("too many values to unpack")
@@ -201,7 +201,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                       "id"], "attracted_to", self.interested_in)
             yield tornado.gen.Task(pipe.execute)
         logging.info("updated interested in")
-        self.render("index.html", form=False)
+        self.render("index.html", show_form=False)
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
