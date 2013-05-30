@@ -168,13 +168,22 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe.exists("user:%s" % self.current_user["id"])
         try:
             attraction_known, user_exists, likes_exist = yield tornado.gen.Task(pipe.execute)
+            token = self.current_user["access_token"]
 
             if not user_exists:
-                self.facebook_request("/me", self.get_user,
-                                  access_token=access_token)
+                self.facebook_request("/me", self.get_user, access_token=token)
+
+            fb_like_fields = (
+                "movies.fields(id,name),music.fields(id,name),"
+                "favorite_athletes,favorite_teams,religion,political,sports,"
+                "books.fields(id,name),games.fields(id,name),"
+                "interests.fields(id,name),television.fields(id,name),"
+                "activities.fields(id,name),religion,education,political"
+            )
+
             if not likes_exist:
-                self.facebook_request("/me", self.get_likes, access_token=self.current_user[
-                                      "access_token"], fields="movies.fields(id,name),music.fields(id,name),favorite_athletes,favorite_teams,religion,political,sports,books.fields(id,name),games.fields(id,name),interests.fields(id,name),television.fields(id,name),activities.fields(id,name),religion,education,political")
+                self.facebook_request("/me", self.get_likes, access_token=token,
+                                      fields=fb_like_fields)
 
             if not attraction_known:
                 self.render("index.html", show_form=True)
