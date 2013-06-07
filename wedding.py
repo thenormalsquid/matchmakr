@@ -254,7 +254,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     """
-    Scrapes essentially
+    Scrapes essentially Going to be deprecated
     """
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -513,19 +513,19 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def friendlist(self, res):
         #if else statement here to test whether friend size is larger than group or not
         groupsize = 30
-        r = []
+        request_list = []
         for i in res["friends"]["data"]:
-            d = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
-            r.append(d)
-        req =(r[i:i+groupsize] for i in xrange(0,len(r),groupsize))
-        fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in req]
+            batch_dict = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
+            request_list.append(batch_dict)
+        requests =(request_list[i:i+groupsize] for i in xrange(0,len(request_list),groupsize))
+        fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in requests]
         yield tornado.gen.Task(self.batched_req_gen, fdata)
 
 
     @tornado.gen.coroutine
-    def batched_req_gen(self, l):
+    def batched_req_gen(self, data):
         #O(n^2) if we can make this O(n), it will be perfect
-        for i in l:
+        for i in data:
             for j in i:
                 if "body" in j:
                     d = ast.literal_eval(j["body"])
