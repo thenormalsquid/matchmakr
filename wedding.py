@@ -235,18 +235,17 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def parse_likes(self, d):
-        i = d.itervalues()
-        with redis.pipeline() as pipe:
-            for e in i:
-                if 'data' in e:
-                    for j in e["data"]:
-                        pipe.hset("%s" % j["id"], "name", j["name"])
-                        pipe.lpush("user:%s" % d["id"], j["id"])
-                elif isinstance(e, list):
-                    for h in e:
-                        pipe.lpush("user:%s" % d["id"], h["id"])
-            yield tornado.gen.Task(pipe.execute)
-
+        pipe = redis.pipeline()
+        for item in d.iteritems():
+            #item is a tuple
+            #item[0] is the category keyword
+            if 'data' in item[1]:
+                for like in item[1]["data"]:
+                    #print like["id"], like["name"]
+                    pipe.hset(like["id"], "name", like["name"])
+                    pipe.sadd("%s:%s" % (item[0],d["id"]),like["id"])
+        yield tornado.gen.Task(pipe.execute)
+        
 
 # could technically keep a counter
 class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -561,14 +560,15 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             #print data[0], "list"
             if "school" in data[0]:
                 #print data[0]["school"]
-                print data, id, name, keyword, gender
+                #print data, id, name, keyword, gender
                 pass
             else:
                 #print data, "heeeee"
                 pass
         elif isinstance(data, str):
             #print data, "string"
-            print data
+            #print data
+            pass
         elif isinstance(data, dict):
             pass
             # for d in data["data"]:

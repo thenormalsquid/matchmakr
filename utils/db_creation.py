@@ -16,6 +16,10 @@ def create_categories():
     pipe.execute()
 
 
+def test_fail():
+    s = r.smembers("likes:12124323324")
+    return s
+
 if __name__ == "__main__":
     create_categories()
 
