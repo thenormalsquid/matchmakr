@@ -16,8 +16,6 @@ import tornado.log
 import tornado.gen
 import tornadoredis
 
-from facebook import GraphAPI
-
 import settings
 from tornado.options import options
 
@@ -445,7 +443,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     hcont[j]["likes"] = {}
                     for hlike in hl:
                         hname2 = yield tornado.gen.Task(redis.hget, "%s" % hlike, "name")
-                        hcont[j]["likes"][hlike] = hname2
+                        hcont[j]["likes"][hlike] = hname3
                 self.render(
                     "partner.html", top_match=top_match, contenders=cont, homewreckers=hcont)
             else:
@@ -521,7 +519,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in requests]
         yield tornado.gen.Task(self.batched_req_gen, fdata)
 
-
     @tornado.gen.coroutine
     def batched_req_gen(self, data):
         #O(n^2) if we can make this O(n), it will be perfect
@@ -531,8 +528,8 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     d = ast.literal_eval(j["body"])
                     if d:
                     #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
-                        #print d
-                        yield tornado.gen.Task(self.asynch_data_handler, d, "movies","name","gender","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                        print d["gender"]
+                        yield tornado.gen.Task(self.asynch_data_handler, d, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
@@ -548,12 +545,34 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         #put keyword logic here
         if keyword in data:
             if "relationship_status" in data:
-                print data[keyword], data["id"], data["name"], data["relationship_status"]
+                #print data[keyword], data["id"], data["name"], data["relationship_status"]
+                #redis saves here
+                self.get_type(keyword, data[keyword], data["id"], data["name"])
             else:
-                print data[keyword], data["id"], data["name"]
-            #print data[keyword]
+                self.get_type(keyword, data[keyword], data["id"], data["name"])
         else:
             pass
+
+    def get_type(self, keyword, data, id, name, gender):
+        #put data scraper here
+        #this returns
+        #like:category:like_id
+        if isinstance(data, list):
+            #print data[0], "list"
+            if "school" in data[0]:
+                #print data[0]["school"]
+                print data, id, name, keyword, gender
+                pass
+            else:
+                #print data, "heeeee"
+                pass
+        elif isinstance(data, str):
+            #print data, "string"
+            print data
+        elif isinstance(data, dict):
+            pass
+            # for d in data["data"]:
+            #     print d
 
 
     @tornado.gen.coroutine

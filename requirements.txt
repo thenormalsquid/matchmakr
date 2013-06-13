@@ -1,3 +1,4 @@
 tornado
 logging
 tornado-redis
+redis
