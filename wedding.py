@@ -14,8 +14,8 @@ import tornado.options
 import tornado.web
 import tornado.log
 import tornado.gen
+#non-blocking redis
 import tornadoredis
-
 import settings
 from tornado.options import options
 
@@ -245,7 +245,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     pipe.hset(like["id"], "name", like["name"])
                     pipe.sadd("%s:%s" % (item[0],d["id"]),like["id"])
         yield tornado.gen.Task(pipe.execute)
-        
+
 
 # could technically keep a counter
 class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -526,9 +526,12 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 if "body" in j:
                     d = ast.literal_eval(j["body"])
                     if d:
-                    #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
-                        print d["gender"]
-                        yield tornado.gen.Task(self.asynch_data_handler, d, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                        if 'gender' in d:
+                            #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
+                            yield tornado.gen.Task(self.asynch_data_handler, d, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                        else:
+                            #no gender specified, no need to scrape (unless they chose an interested in)
+                            continue
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
@@ -546,75 +549,54 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             if "relationship_status" in data:
                 #print data[keyword], data["id"], data["name"], data["relationship_status"]
                 #redis saves here
-                self.get_type(keyword, data[keyword], data["id"], data["name"])
+                self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
             else:
-                self.get_type(keyword, data[keyword], data["id"], data["name"])
+                self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
         else:
             pass
 
-    def get_type(self, keyword, data, id, name, gender):
+    @tornado.gen.coroutine
+    def set_db(self, keyword, data, id, name, gender):
+        #stuff is not saving to redis for some reason
         #put data scraper here
         #this returns
-        #like:category:like_id
-        if isinstance(data, list):
-            #print data[0], "list"
-            if "school" in data[0]:
-                #print data[0]["school"]
-                #print data, id, name, keyword, gender
-                pass
+        #category_id:like_id:gender
+        with redis.pipeline() as pipe:
+            if isinstance(data, list):
+                print data[0], "list"
+                if "school" in data[0]:
+                    pipe.hset(data[0]["id"], data[0]["name"])
+                    pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
+                    print data, id, name, keyword, gender
+                    yield tornado.gen.Task(pipe.execute)
+                else:
+                    pipe.hset(data[0]["id"], data[0]["name"])
+                    pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
+                    yield tornado.gen.Task(pipe.execute)
+            elif isinstance(data, dict):
+                for d in data["data"]:
+                    pipe.hset(d["id"], d["name"])
+                    pipe.sadd("%s:%s:%s" % (keyword, d["id"], gender), id)
+                    yield tornado.gen.Task(pipe.execute)
             else:
-                #print data, "heeeee"
-                pass
-        elif isinstance(data, str):
-            #print data, "string"
-            #print data
-            pass
-        elif isinstance(data, dict):
-            pass
-            # for d in data["data"]:
-            #     print d
+                logging.info("strange data type")
 
 
     @tornado.gen.coroutine
     def create_person(self, data):
-        with redis.pipeline() as pipe:
-            d = data["friends"]["data"]
-            for i in d:
-                if "relationship_status" not in i:
-                    pipe.hmset("people:%s" % i["id"], i)
-                else:
-                    rel = i["relationship_status"]
-                    if rel == "Married" or rel == "In a Relationship":
-                        # adds taken people
-                        pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
-                    elif rel == "Single" or rel == "It's Complicated":
-                        pipe.hmset("people:%s" % i["id"], i)
-            pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
-            yield tornado.gen.Task(pipe.execute)
-
-
-    @tornado.gen.coroutine
-    def set_connect_data(self, d, *args):
         pipe = redis.pipeline()
-        for f in d["friends"]["data"]:
-            for key in args:
-                if key in f:
-                    user_gender = yield tornado.gen.Task(redis.hget, "people:%s" % f["id"], "gender")
-                    homewreck_gender = yield tornado.gen.Task(redis.hget, "people:%s:taken" % f["id"], "gender")
-                    if user_gender:
-                        for i in f[key]["data"]:
-                        # print "likes:%s:%s:%s" %(i["id"],user_gender,i["name"])
-                        # print i.keys()
-                            if "name" not in i:
-                                continue
-                            pipe.sadd("likes:%s:%s" % (i[
-                                      "id"], user_gender), f["id"])
-                    elif homewreck_gender:
-                        for i in f[key]["data"]:
-                            if "name" not in i:
-                                continue
-                            pipe.sadd("likes:%s:%s:homewreck" % (
-                                i["id"], homewreck_gender), f["id"])
+        d = data["friends"]["data"]
+        for i in d:
+            if "relationship_status" not in i:
+                pipe.hmset("people:%s" % i["id"], i)
+            else:
+                rel = i["relationship_status"]
+                if rel == "Married" or rel == "In a Relationship":
+                    # adds taken people
+                    pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
+                elif rel == "Single" or rel == "It's Complicated":
+                    pipe.hmset("people:%s" % i["id"], i)
+        pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
         yield tornado.gen.Task(pipe.execute)
 
 

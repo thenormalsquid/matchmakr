@@ -20,10 +20,9 @@
     {% else %}
         <div class="span4 form-div form-start">
             <p class="loading"><img src="static/images/ajax-loader.gif"></p>
-            <p class="message">Let our algorithm</p>
             <!-- need to disable after clicking submit -->
             <form action="/love" method="post">
-                <input class="btn btn-large btn-block btn-danger submit-scrape" type="submit" value="Start finding your perfect match">
+                <input class="btn btn-large btn-block btn-danger submit-scrape" type="submit" value="Find your matches">
                 {% module xsrf_form_html() %}
             </form>
         </div>
