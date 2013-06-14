@@ -25,6 +25,7 @@ import simplejson as json
 redis = tornadoredis.Client()
 redis.connect()
 
+pipe = redis.pipeline()
 
 class Application(tornado.web.Application):
 
@@ -546,40 +547,51 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def asynch_data_scraper(self, data, keyword, callback=None):
         #put keyword logic here
         if keyword in data:
-            if "relationship_status" in data:
-                #print data[keyword], data["id"], data["name"], data["relationship_status"]
-                #redis saves here
-                self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
-            else:
-                self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
+            #print data[keyword], data["id"], data["name"], data["relationship_status"]
+            #redis saves here
+            key = data[keyword]
+            if isinstance(key, list):
+                if "school" in key[0]:
+                    yield tornado.gen.Task(redis.hset, key[0]["school"]["id"], "name", key[0]["school"]["name"])
+                    yield tornado.gen.Task(redis.sadd, "%s:%s:%s" % (keyword, key[0]["school"]["id"], 
+                        data["gender"]), data["id"])
+            # self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
+                else:
+                    for k in key:
+                        yield tornado.gen.Task(redis.hset, k["id"], "name", k["name"])
+                        yield tornado.gen.Task(redis.sadd,"%s:%s:%s" % (keyword, k["id"], data["gender"]), data["id"])
+            elif isinstance(key, dict):
+                for d in key["data"]:
+                    yield tornado.gen.Task(redis.hset, d["id"], "name", d["name"])
+                    yield tornado.gen.Task(redis.sadd, "%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
         else:
             pass
 
+
+    #deprecate this
     @tornado.gen.coroutine
     def set_db(self, keyword, data, id, name, gender):
         #stuff is not saving to redis for some reason
         #put data scraper here
         #this returns
         #category_id:like_id:gender
-        with redis.pipeline() as pipe:
-            if isinstance(data, list):
-                print data[0], "list"
-                if "school" in data[0]:
-                    pipe.hset(data[0]["id"], data[0]["name"])
-                    pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
-                    print data, id, name, keyword, gender
-                    yield tornado.gen.Task(pipe.execute)
-                else:
-                    pipe.hset(data[0]["id"], data[0]["name"])
-                    pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
-                    yield tornado.gen.Task(pipe.execute)
-            elif isinstance(data, dict):
-                for d in data["data"]:
-                    pipe.hset(d["id"], d["name"])
-                    pipe.sadd("%s:%s:%s" % (keyword, d["id"], gender), id)
-                    yield tornado.gen.Task(pipe.execute)
+        pipe = redis.pipeline()
+        if isinstance(data, list):
+            print data[0], "list"
+            if "school" in data[0]:
+                pipe.hset(data[0]["id"], data[0]["name"])
+                pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
+                yield tornado.gen.Task(pipe.execute)
             else:
-                logging.info("strange data type")
+                pipe.hset(data[0]["id"], data[0]["name"])
+                pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
+                yield tornado.gen.Task(pipe.execute)
+        elif isinstance(data, dict):
+            for d in data["data"]:
+                pipe.hset(d["id"], d["name"])
+                pipe.sadd("%s:%s:%s" % (keyword, d["id"], gender), id)
+        else:
+            logging.info("strange data type")
 
 
     @tornado.gen.coroutine
