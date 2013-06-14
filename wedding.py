@@ -529,7 +529,8 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     if d:
                         if 'gender' in d:
                             #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
-                            yield tornado.gen.Task(self.asynch_data_handler, d, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                            pipe = redis.pipeline()
+                            yield tornado.gen.Task(self.asynch_data_handler, d, pipe,"movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
                         else:
                             #no gender specified, no need to scrape (unless they chose an interested in)
                             continue
@@ -540,13 +541,13 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     #use: pass in args for data collection, ie; movie, sports, etc
     @tornado.gen.coroutine
-    def asynch_data_handler(self, data, *args):
-        yield [tornado.gen.Task(self.asynch_data_scraper, data=data, keyword=k) for k in args]        
+    def asynch_data_handler(self, data, pipe, *args):
+        yield [tornado.gen.Task(self.asynch_data_scraper, pipe=pipe, data=data, keyword=k) for k in args]        
+        yield tornado.gen.Task(pipe.execute)
 
     @tornado.gen.coroutine
-    def asynch_data_scraper(self, data, keyword, callback=None):
+    def asynch_data_scraper(self, pipe, data, keyword, callback=None):
         #put keyword logic here
-        pipe = redis.pipeline()
         if keyword in data:
             #print data[keyword], data["id"], data["name"], data["relationship_status"]
             #redis saves here
@@ -565,8 +566,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 for d in key["data"]:
                     pipe.hset(d["id"], "name", d["name"])
                     pipe.sadd("%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
-
-            yield tornado.gen.Task(pipe.execute)
         else:
             pass
 
