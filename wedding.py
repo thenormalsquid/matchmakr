@@ -546,24 +546,27 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def asynch_data_scraper(self, data, keyword, callback=None):
         #put keyword logic here
+        pipe = redis.pipeline()
         if keyword in data:
             #print data[keyword], data["id"], data["name"], data["relationship_status"]
             #redis saves here
             key = data[keyword]
             if isinstance(key, list):
                 if "school" in key[0]:
-                    yield tornado.gen.Task(redis.hset, key[0]["school"]["id"], "name", key[0]["school"]["name"])
-                    yield tornado.gen.Task(redis.sadd, "%s:%s:%s" % (keyword, key[0]["school"]["id"], 
+                    pipe.hset(key[0]["school"]["id"], "name", key[0]["school"]["name"])
+                    pipe.sadd("%s:%s:%s" % (keyword, key[0]["school"]["id"], 
                         data["gender"]), data["id"])
             # self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
                 else:
                     for k in key:
-                        yield tornado.gen.Task(redis.hset, k["id"], "name", k["name"])
-                        yield tornado.gen.Task(redis.sadd,"%s:%s:%s" % (keyword, k["id"], data["gender"]), data["id"])
+                        pipe.hset(k["id"], "name", k["name"])
+                        pipe.sadd("%s:%s:%s" % (keyword, k["id"], data["gender"]), data["id"])
             elif isinstance(key, dict):
                 for d in key["data"]:
-                    yield tornado.gen.Task(redis.hset, d["id"], "name", d["name"])
-                    yield tornado.gen.Task(redis.sadd, "%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
+                    pipe.hset(d["id"], "name", d["name"])
+                    pipe.sadd("%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
+
+            yield tornado.gen.Task(pipe.execute)
         else:
             pass
 
