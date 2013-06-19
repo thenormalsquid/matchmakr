@@ -22,7 +22,8 @@ from tornado.options import options
 import simplejson as json
 
 #global redis client class
-redis = tornadoredis.Client()
+#don't forget to change back to db1
+redis = tornadoredis.Client(selected_db=2)
 redis.connect()
 
 pipe = redis.pipeline()
@@ -34,13 +35,12 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", IndexHandler),
             (r"/main", MainHandler),
-            (r"/love", ScrapeHandler),
+            (r"/love", BatchHandler),
             (r"/thinkingloudly", LoadingHandler),
             (r"/mymatches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
-            (r"/batch", BatchHandler),
             (r"/terms", TermsHandler),
         ]
         settings = dict(
@@ -246,151 +246,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     pipe.hset(like["id"], "name", like["name"])
                     pipe.sadd("%s:%s" % (item[0],d["id"]),like["id"])
         yield tornado.gen.Task(pipe.execute)
-
-
-# could technically keep a counter
-class ScrapeHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
-
-    """
-    Scrapes essentially Going to be deprecated
-    """
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def post(self):
-        yield [tornado.gen.Task(self.get_friends), self.get_things()]
-        self.redirect("/mymatches")
-
-    @tornado.gen.coroutine
-    def get_things(self):
-        yield [ self.facebook_request("/me",self.get_sports, access_token = self.current_user["access_token"], fields="friends.fields(favorite_teams,favorite_athletes,sports)"),
-        self.facebook_request("/me",self.get_games, access_token = self.current_user["access_token"], fields="friends.fields(games)"),
-        self.facebook_request("/me",self.get_interests, access_token = self.current_user["access_token"], fields="friends.fields(interests)"),                
-        self.facebook_request("/me", self.get_tv, access_token = self.current_user["access_token"], fields="friends.fields(television)"),
-        self.facebook_request("/me", self.get_movies, access_token = self.current_user["access_token"], fields="friends.fields(movies)"),
-        self.facebook_request("/me", self.get_books,access_token = self.current_user["access_token"], fields="friends.fields(books)")]
-        try:
-            print "hi"
-            self.facebook_request("/me",self.get_music, access_token = self.current_user["access_token"], fields="friends.fields(music)")
-        except HTTPError:
-            self.redirect("/mymatches")
-
-    @tornado.gen.coroutine
-    def get_sports(self, d):
-        res = d
-        self.set_base_data(
-            res, "favorite_teams", "favorite_athletes", "sports")
-
-    @tornado.gen.coroutine
-    def get_tv(self, d):
-        res = d
-        self.set_connect_data(res, "television")
-
-    @tornado.gen.coroutine
-    def get_interests(self, d):
-        res = d
-        self.set_connect_data(res, "interests")
-
-    @tornado.gen.coroutine
-    def get_music(self, d):
-        res = d
-        self.set_connect_data(res, "music")
-
-    @tornado.gen.coroutine
-    def get_movies(self, d):
-        res = d
-        self.set_connect_data(res, "movies")
-
-    @tornado.gen.coroutine
-    def get_friends(self):
-        res = yield self.facebook_request("/me", self.smack,
-                                          access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender)")
-        self.create_person(res)
-
-    def smack(self, d):
-        return d
-
-    @tornado.gen.coroutine
-    def get_games(self, d):
-        self.set_connect_data(res, "games")
-
-    @tornado.gen.coroutine
-    def get_books(self, d):
-        print "lo"
-        res = d
-        self.set_connect_data(res, "books")
-
-    @tornado.gen.coroutine
-    def create_person(self, data):
-        with redis.pipeline() as pipe:
-            d = data["friends"]["data"]
-            for i in d:
-                if "relationship_status" not in i:
-                    pipe.hmset("people:%s" % i["id"], i)
-                else:
-                    rel = i["relationship_status"]
-                    if rel == "Married" or rel == "In a Relationship":
-                        # adds taken people
-                        pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
-                    elif rel == "Single" or rel == "It's Complicated":
-                        pipe.hmset("people:%s" % i["id"], i)
-            pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
-            yield tornado.gen.Task(pipe.execute)
-
-    @tornado.gen.coroutine
-    def set_base_data(self, d, *args):
-        pipe = redis.pipeline()
-        for e in d["friends"]["data"]:
-            for key in args:
-                if key in e:
-                    user_gender = yield tornado.gen.Task(redis.hget, "people:%s" % e["id"], "gender")
-                    homewreck_gender = yield tornado.gen.Task(redis.hget, "people:%s:taken" % e["id"], "gender")
-                    if user_gender:
-                        for s in e[key]:
-                            # print "likes:%s:%s:%s" %(s["id"],user_gender,s["name"])
-                            # print "da"
-                            pipe.sadd("likes:%s:%s" % (s[
-                                      "id"], user_gender), e["id"])
-                    elif homewreck_gender:
-                        for s in e[key]:
-                            pipe.sadd("likes:%s:%s:%s" % (s[
-                                      "id"], homewreck_gender, "homewreck"), e["id"])
-        yield tornado.gen.Task(pipe.execute)
-
-    @tornado.gen.coroutine
-    def set_connect_data(self, d, *args):
-        pipe = redis.pipeline()
-        for f in d["friends"]["data"]:
-            for key in args:
-                if key in f:
-                    user_gender = yield tornado.gen.Task(redis.hget, "people:%s" % f["id"], "gender")
-                    homewreck_gender = yield tornado.gen.Task(redis.hget, "people:%s:taken" % f["id"], "gender")
-                    if user_gender:
-                        for i in f[key]["data"]:
-                        # print "likes:%s:%s:%s" %(i["id"],user_gender,i["name"])
-                        # print i.keys()
-                            if "name" not in i:
-                                continue
-                            pipe.sadd("likes:%s:%s" % (i[
-                                      "id"], user_gender), f["id"])
-                    elif homewreck_gender:
-                        for i in f[key]["data"]:
-                            if "name" not in i:
-                                continue
-                            pipe.sadd("likes:%s:%s:homewreck" % (
-                                i["id"], homewreck_gender), f["id"])
-        yield tornado.gen.Task(pipe.execute)
-
-
-class LoadingHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
-
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def get(self):
-        self.write("contemplating amount of lasagnas eaten")
-
-    def on_finish(self):
-        print "finished get loading"
-
+        
 
 class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
@@ -496,9 +352,10 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     """
         This handler stores data, not retrieve
     """
+    
     @tornado.web.asynchronous
     @tornado.gen.coroutine
-    def get(self):
+    def post(self):
         res = yield self.facebook_request("/me", self.create_person,
                                           access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
         #self.create_person(res)
@@ -506,6 +363,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         #me = yield self.facebook_request("", post_args={'batch':[{"method":"GET","relative_url":"me"}, {"method":"GET", "relative_url":"me?fields=friends.limit(100).fields(music)"}]}, access_token=self.current_user["access_token"])
         #print me       
 
+    
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def friendlist(self, res):
@@ -519,9 +377,12 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in requests]
         yield tornado.gen.Task(self.batched_req_gen, fdata)
 
+    
     @tornado.gen.coroutine
     def batched_req_gen(self, data):
         #O(n^2) if we can make this O(n), it will be perfect
+        keywords = ["movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams"]
+        pipe = redis.pipeline()
         for i in data:
             for j in i:
                 if "body" in j:
@@ -529,22 +390,21 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     if d:
                         if 'gender' in d:
                             #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
-                            pipe = redis.pipeline()
-                            yield tornado.gen.Task(self.asynch_data_handler, d, pipe,"movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                            yield tornado.gen.Task(self.asynch_data_handler, d,"movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
                         else:
                             #no gender specified, no need to scrape (unless they chose an interested in)
                             continue
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
+        yield tornado.gen.Task(pipe.execute)  
+        self.redirect("/mymatches")  
 
-
-    #use: pass in args for data collection, ie; movie, sports, etc
+    
     @tornado.gen.coroutine
-    def asynch_data_handler(self, data, pipe, *args):
+    def asynch_data_handler(self, data, *args):
         yield [tornado.gen.Task(self.asynch_data_scraper, pipe=pipe, data=data, keyword=k) for k in args]        
-        yield tornado.gen.Task(pipe.execute)
-
+    
     @tornado.gen.coroutine
     def asynch_data_scraper(self, pipe, data, keyword, callback=None):
         #put keyword logic here
@@ -554,46 +414,17 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             key = data[keyword]
             if isinstance(key, list):
                 if "school" in key[0]:
-                    pipe.hset(key[0]["school"]["id"], "name", key[0]["school"]["name"])
                     pipe.sadd("%s:%s:%s" % (keyword, key[0]["school"]["id"], 
                         data["gender"]), data["id"])
             # self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
                 else:
                     for k in key:
-                        pipe.hset(k["id"], "name", k["name"])
                         pipe.sadd("%s:%s:%s" % (keyword, k["id"], data["gender"]), data["id"])
             elif isinstance(key, dict):
                 for d in key["data"]:
-                    pipe.hset(d["id"], "name", d["name"])
                     pipe.sadd("%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
         else:
             pass
-
-
-    #deprecate this
-    @tornado.gen.coroutine
-    def set_db(self, keyword, data, id, name, gender):
-        #stuff is not saving to redis for some reason
-        #put data scraper here
-        #this returns
-        #category_id:like_id:gender
-        pipe = redis.pipeline()
-        if isinstance(data, list):
-            print data[0], "list"
-            if "school" in data[0]:
-                pipe.hset(data[0]["id"], data[0]["name"])
-                pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
-                yield tornado.gen.Task(pipe.execute)
-            else:
-                pipe.hset(data[0]["id"], data[0]["name"])
-                pipe.sadd("%s:%s:%s" % (keyword, data[0]["id"], gender), id)
-                yield tornado.gen.Task(pipe.execute)
-        elif isinstance(data, dict):
-            for d in data["data"]:
-                pipe.hset(d["id"], d["name"])
-                pipe.sadd("%s:%s:%s" % (keyword, d["id"], gender), id)
-        else:
-            logging.info("strange data type")
 
 
     @tornado.gen.coroutine
