@@ -36,7 +36,6 @@ class Application(tornado.web.Application):
             (r"/", IndexHandler),
             (r"/main", MainHandler),
             (r"/love", BatchHandler),
-            (r"/thinkingloudly", LoadingHandler),
             (r"/mymatches", CalculatedHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
@@ -244,9 +243,10 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 for like in item[1]["data"]:
                     #print like["id"], like["name"]
                     pipe.hset(like["id"], "name", like["name"])
-                    pipe.sadd("%s:%s" % (item[0],d["id"]),like["id"])
+                    pipe.sadd("user_likes:%s" % (d["id"]), "%s:%s" % (item[0],like["id"]))
+                    pipe.hmset("%s:%s" % (item[0], like["id"]), {"name": like["name"], "id": like["id"]})
         yield tornado.gen.Task(pipe.execute)
-        
+
 
 class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
@@ -254,98 +254,22 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.authenticated
     @tornado.gen.coroutine
     def get(self):
-            # get top 5 people add to rank
-        yield [tornado.gen.Task(self.ready_data)]
-        yield self.get_scores()
+        yield self.get_matches()
 
     @tornado.gen.coroutine
-    def get_scores(self):
+    def get_matches(self):
         pipe = redis.pipeline()
-        # top match dict
-        # homewrecker person dict
-        dh = {}
-        cont = {}
-        # homewrecker contender
-        hcont = {}
-        # must have score with single person for this to work
-        scores = yield tornado.gen.Task(redis.zrevrange, "match:%s" % (self.current_user["id"]), 0, -1, with_scores=False)
-        hscores = yield tornado.gen.Task(redis.zrevrange, "match:%s:homewreck" % (self.current_user["id"]), 0, -1, with_scores=False)
-        try:
-            top = scores[0]
-            person = yield tornado.gen.Task(redis.hgetall, "people:%s" % top)
-            likes = yield tornado.gen.Task(redis.smembers, "matches:%s:%s" % (top, self.current_user["id"]))
-            hlikes = yield tornado.gen.Task(redis.smembers, "matches:%s:%s:homewreck" % (top, self.current_user["id"]))
-            top_match = person
-            top_match["likes"] = {}
-            for i in likes:
-                name = yield tornado.gen.Task(redis.hget, "%s" % i, "name")
-                top_match["likes"][i] = name
-            for h in hlikes:
-                name = yield tornado.gen.Task(redis.hget, "%s" % h, "name")
-                dh[h] = name
-            if len(scores) > 5:
-                for p in scores[1:]:
-                    l = yield tornado.gen.Task(redis.smembers, "matches:%s:%s" % (p, self.current_user["id"]))
-                    person2 = yield tornado.gen.Task(redis.hgetall, "people:%s" % p)
-                    cont[p] = person2
-                    cont[p]["likes"] = {}
-                    for like in l:
-                        name2 = yield tornado.gen.Task(redis.hget, "%s" % like, "name")
-                        cont[p]["likes"][like] = name2
-                for j in hscores[0:6]:
-                    hl = yield tornado.gen.Task(redis.smembers, "matches:%s:%s:homewreck" % (j, self.current_user["id"]))
-                    hperson2 = yield tornado.gen.Task(redis.hgetall, "people:%s:taken" % j)
-                    hcont[j] = hperson2
-                    hcont[j]["likes"] = {}
-                    for hlike in hl:
-                        hname2 = yield tornado.gen.Task(redis.hget, "%s" % hlike, "name")
-                        hcont[j]["likes"][hlike] = hname3
-                self.render(
-                    "partner.html", top_match=top_match, contenders=cont, homewreckers=hcont)
-            else:
-                self.render(
-                    "partner.html", top_match=top_match, contenders=None, homewreckers=None)
+        matches = yield tornado.gen.Task(redis.zrevrange, "matches:%s" % (self.current_user["id"]), 0, -1, with_scores=False)
+        match_list = []
+        for match in matches:
+            person = yield tornado.gen.Task(redis.hgetall, match)
+            match_list.append(person)
+        try:  
+            self.render("partner.html", top_match=match_list[0], contenders=match_list, homewreckers=None)
+            # self.render(
+            #         "partner.html", top_match=top_match, contenders=None, homewreckers=None)
         except IndexError:
-            self.render(
-                "partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
-
-
-    @tornado.gen.coroutine
-    def ready_data(self):
-        interest = yield tornado.gen.Task(redis.hget, "users:%s" % self.current_user["id"], "attracted_to")
-        u_likes = yield tornado.gen.Task(redis.lrange, "user:%s" % self.current_user["id"], 0, -1)
-        l = []
-        hl = []
-        pipe = redis.pipeline()
-        for i in list(u_likes):
-            exists = yield tornado.gen.Task(redis.exists, "likes:%s:%s" % (i, interest))
-            homewreck_exists = yield tornado.gen.Task(redis.exists, "likes:%s:%s:homewreck" % (i, interest))
-            if exists:
-                members = yield tornado.gen.Task(redis.smembers, "likes:%s:%s" % (i, interest))
-                for m in members:
-                    pipe.sadd("matches:%s:%s" % (
-                        m, self.current_user["id"]), i)
-                    l.append(m)
-            elif homewreck_exists:
-                members = yield tornado.gen.Task(redis.smembers, "likes:%s:%s:homewreck" % (i, interest))
-                for m in members:
-                    pipe.sadd("matches:%s:%s:homewreck" % (
-                        m, self.current_user["id"]), i)
-                    hl.append(m)
-        yield tornado.gen.Task(pipe.execute)
-        self.calculate(l, hl)
-
-
-    @tornado.gen.coroutine
-    def calculate(self, l, hl):
-        pipe = redis.pipeline()
-        for i in l:
-            pipe.zadd("match:%s" % self.current_user["id"], l.count(i), i)
-        for j in hl:
-            pipe.zadd("match:%s:homewreck" %
-                      self.current_user["id"],  hl.count(j), j)
-        yield tornado.gen.Task(pipe.execute)
-
+            self.render("partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
 
 
 class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -381,7 +305,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def batched_req_gen(self, data):
         #O(n^2) if we can make this O(n), it will be perfect
-        keywords = ["movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams"]
         pipe = redis.pipeline()
         for i in data:
             for j in i:
@@ -390,19 +313,20 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     if d:
                         if 'gender' in d:
                             #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
-                            yield tornado.gen.Task(self.asynch_data_handler, d,"movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                            yield tornado.gen.Task(self.asynch_data_handler, d, pipe, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
                         else:
                             #no gender specified, no need to scrape (unless they chose an interested in)
                             continue
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
-        yield tornado.gen.Task(pipe.execute)  
+        yield tornado.gen.Task(pipe.execute) 
+        yield tornado.gen.Task(self.make_matches) 
         self.redirect("/mymatches")  
 
     
     @tornado.gen.coroutine
-    def asynch_data_handler(self, data, *args):
+    def asynch_data_handler(self, data, pipe, *args):
         yield [tornado.gen.Task(self.asynch_data_scraper, pipe=pipe, data=data, keyword=k) for k in args]        
     
     @tornado.gen.coroutine
@@ -416,13 +340,13 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 if "school" in key[0]:
                     pipe.sadd("%s:%s:%s" % (keyword, key[0]["school"]["id"], 
                         data["gender"]), data["id"])
-            # self.set_db(keyword, data[keyword], data["id"], data["name"], data["gender"])
                 else:
                     for k in key:
                         pipe.sadd("%s:%s:%s" % (keyword, k["id"], data["gender"]), data["id"])
             elif isinstance(key, dict):
                 for d in key["data"]:
                     pipe.sadd("%s:%s:%s" % (keyword, d["id"], data["gender"]), data["id"])
+                    
         else:
             pass
 
@@ -433,15 +357,46 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         d = data["friends"]["data"]
         for i in d:
             if "relationship_status" not in i:
-                pipe.hmset("people:%s" % i["id"], i)
+                pipe.hmset("users:%s" % i["id"], i)
             else:
-                rel = i["relationship_status"]
-                if rel == "Married" or rel == "In a Relationship":
-                    # adds taken people
-                    pipe.hmset("people:%s:%s" % (i["id"], "taken"), i)
-                elif rel == "Single" or rel == "It's Complicated":
-                    pipe.hmset("people:%s" % i["id"], i)
+                pipe.hmset("users:%s" % i["id"], i)
         pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
+        yield tornado.gen.Task(pipe.execute)
+
+
+    @tornado.gen.coroutine
+    def make_matches(self):
+        pipe = redis.pipeline()
+        categories = ["movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams"]
+        pipe.hget("users:%s" % self.current_user["id"], "attracted_to")
+        pipe.smembers("user_likes:%s" % self.current_user["id"])
+        attracted_to, user_likes = yield tornado.gen.Task(pipe.execute)
+        match_list = []
+        for like in user_likes:
+            exists = yield tornado.gen.Task(redis.exists, "%s:%s" %(like, attracted_to))
+            if exists:
+                matches = yield tornado.gen.Task(redis.smembers, "%s:%s" % (like, attracted_to))
+                #check to see if match exists so we don't have to recalc this everytime
+                for match in matches:
+                    match_exists = yield tornado.gen.Task(redis.exists, "match:%s:%s" % (match, self.current_user["id"]))
+                    if match_exists:
+                       continue
+                    else:
+                        pipe.sadd("match_likes:%s:%s" % (match, self.current_user["id"]), like)
+                        match_list.append(match)
+        yield tornado.gen.Task(pipe.execute)
+        for match in match_list:
+            like_dict = {cat: [] for cat in categories}
+            person = yield tornado.gen.Task(redis.hgetall, "users:%s" % match)
+            likes = yield tornado.gen.Task(redis.smembers, "match_likes:%s:%s" %(match, self.current_user["id"]))
+            for like in likes:
+                cat, lid = like.split(":")
+                raw = yield tornado.gen.Task(redis.hgetall, like)
+                like_dict[cat].append(raw)
+            person["likes"] = like_dict
+            print person
+            pipe.hmset("match:%s:%s" % (match, self.current_user["id"]), person)
+            pipe.zadd("matches:%s" % self.current_user["id"], match_list.count(match), "match:%s:%s" % (match, self.current_user["id"]))
         yield tornado.gen.Task(pipe.execute)
 
 

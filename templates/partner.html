@@ -15,7 +15,7 @@
         <h3>Shared interests</h3>
         <ul>
         {% for id in top_match["likes"] %}
-            {% set name = top_match["likes"][id] %}
+            {% set name = top_match["likes"] %}
             <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
         {% end %}
         </ul>
@@ -52,7 +52,7 @@
 	                    {% set css="offset3" %}
 	                    <div class="row-fluid top-contenders">
 	                {% end %}
-                    {% set p = contenders[e] %}
+                    {% set p = contenders %}
                     {% module Partner(p, css, interests=True) %}
                     {% set i = i+1 %}
 	            {% end %}

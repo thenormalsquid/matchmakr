@@ -1,17 +1,17 @@
 {% set css2="" %}
     {% set css2="no-interests" %}
 <div class="span2 partner {{ css }} {{ css2 }} ">
-    <a class="pic {{ css2 }}" style="background-image:url('//graph.facebook.com/{{escape(partner["id"])}}/picture?width=200&height=200');" href="https://facebook.com/{{escape(partner["id"])}}" target="_blank">
+    <a class="pic {{ css2 }}" style="background-image:url('//graph.facebook.com//picture?width=200&height=200');" href="https://facebook.com/" target="_blank">
 	<div class="name {{ css2 }}">
-	    <h3>{{escape(partner["name"])}}</h3>
+	    <h3>{{partner}}</h3>
 	</div>
     </a>
 	<div class="interests">
 	    <h4>Shared interests</h4>
 	    <ul>
-		{% for id in partner["likes"] %}
-		    {% set name = partner["likes"][id] %}
-		    <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+		{% for id in partner %}
+		    {% set name = partner %}
+		    <li><a href="http://facebook.com/" target="_blank"></a></li>
 		{% end %}
 	    </ul>
 	</div>
