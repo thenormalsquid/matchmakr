@@ -187,6 +187,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
             if not attraction_known:
                 logging.debug("prompting user for gender attraction")
+                #rewrite this to return user info as json from db
                 self.render("index.html", show_form=True)
             else:
                 self.render("index.html", show_form=False)
@@ -249,7 +250,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
 
 class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
-
+    #batchhandler does all of the database methods, this is a get returning a json array
     @tornado.web.asynchronous
     @tornado.web.authenticated
     @tornado.gen.coroutine
@@ -265,11 +266,13 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             person = yield tornado.gen.Task(redis.hgetall, match)
             match_list.append(person)
         try:  
-            self.render("partner.html", top_match=match_list[0], contenders=match_list, homewreckers=None)
-            # self.render(
-            #         "partner.html", top_match=top_match, contenders=None, homewreckers=None)
+            #deprecate partner.html as we switch to angular for the ui
+            #self.render("partner.html", top_match=match_list[0], matches=match_list)
+            #first in match_list is the 
+            print match_list
+            self.write(tornado.escape.json_encode(match_list))
         except IndexError:
-            self.render("partner.html", top_match=None, likes=None, contenders=None, homewreckers=None)
+            self.render("partner.html", top_match=None, matches=None)
 
 
 class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -321,8 +324,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
         yield tornado.gen.Task(pipe.execute) 
-        yield tornado.gen.Task(self.make_matches) 
-        self.redirect("/mymatches")  
+        yield tornado.gen.Task(self.make_matches)   
 
     
     @tornado.gen.coroutine
@@ -398,6 +400,16 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             pipe.hmset("match:%s:%s" % (match, self.current_user["id"]), person)
             pipe.zadd("matches:%s" % self.current_user["id"], match_list.count(match), "match:%s:%s" % (match, self.current_user["id"]))
         yield tornado.gen.Task(pipe.execute)
+
+    #signals to angular that calculation has finished
+    def on_finish(self):
+        print "calc finished"
+        self.write({"calculation_finished": True})
+
+    #signals angular that calc has started
+    def prepare(self):
+        print "calc started"
+        self.write({"calculation_finished": True})
 
 
 class PrivacyHandler(BaseHandler):
