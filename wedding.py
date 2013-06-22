@@ -33,10 +33,13 @@ class Application(tornado.web.Application):
     def __init__(self):
         debug = (tornado.options.options.environment == "dev")
         handlers = [
+            #/user, /matches  are for the api
             (r"/", IndexHandler),
             (r"/main", MainHandler),
             (r"/love", BatchHandler),
-            (r"/mymatches", CalculatedHandler),
+            (r"/user", UserHandler),
+            (r"/matches", CalculatedHandler),
+            (r"/mymatches", RenderMatches),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
@@ -142,6 +145,18 @@ class AuthLogoutHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         logging.info(self.request.headers)
         self.clear_cookie("fbdemo_user")
         self.redirect(self.get_argument("next", "/"))
+
+
+class UserHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+    """
+    Returns a json representation of current user
+    """
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        user = yield tornado.gen.Task(redis.hgetall, "users:%s" % self.current_user["id"])
+        self.write(tornado.escape.json_encode(user))
 
 
 # all user based magic happens here
@@ -255,7 +270,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
 
 class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
-    #batchhandler does all of the database methods, this is a get returning a json array
+    #return json array api
     @tornado.web.asynchronous
     @tornado.web.authenticated
     @tornado.gen.coroutine
@@ -416,6 +431,12 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         print "calc started"
         self.write({"calculation_finished": True})
 
+
+class RenderMatches(BaseHandler, tornado.auth.FacebookGraphMixin):
+    @tornado.web.asynchronous
+    @tornado.web.authenticated
+    def get(self):
+        self.render("partner.html")
 
 class PrivacyHandler(BaseHandler):
     def get(self):
