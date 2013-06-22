@@ -185,9 +185,14 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 self.facebook_request("/me", self.get_likes, access_token=token,
                                       fields=fb_like_fields)
 
+            # #use this once testing phase is complete
+            # logging.debug("prompting user for gender attraction")                
+            # user = yield tornado.gen.Task(redis.hgetall, "users:%s" % self.current_user["id"])
+            # #show gender selection form always (like bang with friends)
+            # self.write(user)
+
             if not attraction_known:
                 logging.debug("prompting user for gender attraction")
-                #rewrite this to return user info as json from db
                 self.render("index.html", show_form=True)
             else:
                 self.render("index.html", show_form=False)
