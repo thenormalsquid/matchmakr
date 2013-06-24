@@ -38,8 +38,8 @@ class Application(tornado.web.Application):
             (r"/main", MainHandler),
             (r"/love", BatchHandler),
             (r"/user", UserHandler),
-            (r"/matches", CalculatedHandler),
-            (r"/mymatches", RenderMatches),
+            (r"/mymatches", CalculatedHandler),
+            (r"/matches", MatchApi),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
@@ -284,13 +284,13 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         match_list = []
         for match in matches:
             person = yield tornado.gen.Task(redis.hgetall, match)
+            person["likes"] = ast.literal_eval(person["likes"])
             match_list.append(person)
         try:  
             #deprecate partner.html as we switch to angular for the ui
-            #self.render("partner.html", top_match=match_list[0], matches=match_list)
+            self.render("partner.html", top_match=match_list[0], matches=match_list)
             #first in match_list is the 
-            print match_list
-            self.write(tornado.escape.json_encode(match_list))
+            #self.write(tornado.escape.json_encode(match_list))
         except IndexError:
             self.render("partner.html", top_match=None, matches=None)
 
@@ -432,11 +432,23 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         self.write({"calculation_finished": True})
 
 
-class RenderMatches(BaseHandler, tornado.auth.FacebookGraphMixin):
+class MatchApi(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.web.authenticated
     def get(self):
-        self.render("partner.html")
+        pipe = redis.pipeline()
+        matches = yield tornado.gen.Task(redis.zrevrange, "matches:%s" % (self.current_user["id"]), 0, -1, with_scores=False)
+        match_list = []
+        for match in matches:
+            person = yield tornado.gen.Task(redis.hgetall, match)
+            match_list.append(person)
+        try:  
+            #deprecate partner.html as we switch to angular for the ui
+            #self.render("partner.html", top_match=match_list[0], matches=match_list)
+            #first in match_list is the 
+            self.write(tornado.escape.json_encode(match_list))
+        except IndexError:
+            self.write(None)
 
 class PrivacyHandler(BaseHandler):
     def get(self):
@@ -451,7 +463,7 @@ class TermsHandler(BaseHandler):
 
 
 class PartnerModule(tornado.web.UIModule):
-
+    #may need to deprecate this module, if we're going the angular route
     def render(self, partner, css="", interests=False):
         return self.render_string("modules/partner.html",
                                   partner=partner,

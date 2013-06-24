@@ -14,9 +14,19 @@
     <div class="span3 top-interests">
         <h3>Shared interests</h3>
         <ul>
-        {% for id in top_match["likes"] %}
-            {% set name = top_match["likes"] %}
-            <li><a href="http://facebook.com/{{_(id)}}" target="_blank">{{_(name)}}</a></li>
+        <ul>    
+        {% for key in top_match["likes"] %}
+             {% set cat_list = top_match["likes"][key] %}
+             {% if len(cat_list) > 0 %}
+                {% set key_word_list = key.split("_") %}
+                {% set new_key = " ".join(key_word_list).title() %}
+                 <h4>{{new_key}}</h4>
+                 {% for like in cat_list %}
+                     <li><a href="http://facebook.com/{{_(like["id"])}}" target="_blank">{{_(like["name"])}}</a></li>
+                 {% end %}
+             {% end %}
+             {% set name = top_match["likes"] %}
+            <!-- <li><a href="http://facebook.com/{# id #}" target="_blank">{# name #}</a></li> -->
         {% end %}
         </ul>
     </div>
@@ -28,38 +38,6 @@
 </div>
 {% end %}
 
-{% block contend_list %}
-    {% if contenders %}
-	    <div class="contenders">
-		    <div class="row-fluid">
-			<h2 class="span8 offset2">{{ top_match["name"] }}'s Contenders</h2>
-		    </div>
-	        <div class="row-fluid">
-	            {% set i = 0 %}
-	            {% for e in contenders %}
-                    {% set css = "" %}
-                    {% if i % 3 == 0 %}
-                        {% if i > 2 %}
-                            </div>
-                        {% end %}
-                        {% set css="offset3" %}
-                        <div class="row-fluid">
-                    {% end %}
-	                {% if i % 3 == 0 %}
-			         {% if i > 2 %}
-		                    </div>
-	                    {% end %}
-	                    {% set css="offset3" %}
-	                    <div class="row-fluid top-contenders">
-	                {% end %}
-                    {% set p = contenders %}
-                    {% module Partner(p, css, interests=True) %}
-                    {% set i = i+1 %}
-	            {% end %}
-	         </div>
-		</div>
-    {% end %}
-{% end %}
 
 {% block data %}
     {% if top_match %}
@@ -71,36 +49,7 @@
     {% end %}
 {% end %}
 
-{% block homewrecker_list %}
-    {% if homewreckers != None %}
-    <div class="homewrecker-list">
-        <div class="row-fluid">
-        {% set i = 0 %}
-        {% for e in homewreckers %}
-         {% set css = "" %}
-            {% if i % 3 == 0 %}
-                {% if i > 2 %}
-                    </div>
-                {% end %}
-                {% set css="offset3" %}
-                    <div class="row-fluid">
-            {% end %}
-            {% if i % 3 == 0 %}
-                {% if i > 2 %}
-                    </div>
-                {% end %}
-                {% set css="offset3" %}
-                    <div class="row-fluid top-contenders">
-            {% end %}
-                {% set p = homewreckers[e] %}
-                {% module Partner(p, css, interests=True)%}
-                {% set i = i+1 %}
-                {% end %}    
-                </div>
-            </div>
-    {% else %}
+
         <div class="homewrecker-interests">
             <p>You weren't matched with anybody that is married or in a relationship. Temptation averted.</p>
         </div>
-    {% end %}
-{% end %}
