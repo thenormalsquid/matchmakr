@@ -2,7 +2,7 @@ $(function() {
 
     var messages = ["Comparing the hue of your favorite color with your match's eyes...",
         "Delivering cookies to orphaned pelicans...",
-        "Comparing how much lasagna both of you can eat in three days...",
+        "Comparing how much lasagna you can eat...",
         "Questioning the meaning of life...",
         "Judging your tastes in music...",
         "Journaling hip hop...",

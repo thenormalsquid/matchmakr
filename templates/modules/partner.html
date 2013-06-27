@@ -1,18 +1,25 @@
 {% set css2="" %}
     {% set css2="no-interests" %}
 <div class="span2 partner {{ css }} {{ css2 }} ">
-    <a class="pic {{ css2 }}" style="background-image:url('//graph.facebook.com//picture?width=200&height=200');" href="https://facebook.com/" target="_blank">
+    <a class="pic {{ css2 }}" style="background-image:url('//graph.facebook.com/{{_(partner["id"])}}/picture?width=200&height=200');" href="https://facebook.com/{{_(partner["id"])}}" target="_blank">
 	<div class="name {{ css2 }}">
-	    <h3>{{partner}}</h3>
+	    <h3>{{partner["name"]}}</h3>
 	</div>
     </a>
-	<div class="interests">
+	<div class="top-interests">
 	    <h4>Shared interests</h4>
-	    <ul>
-		{% for id in partner %}
-		    {% set name = partner %}
-		    <li><a href="http://facebook.com/" target="_blank"></a></li>
-		{% end %}
-	    </ul>
+	    <ul>    
+        {% for key in partner["likes"] %}
+             {% set cat_list = partner["likes"][key] %}
+             {% if len(cat_list) > 0 %}
+                {% set key_word_list = key.split("_") %}
+                {% set new_key = " ".join(key_word_list).title() %}
+                 <h4>{{new_key}}</h4>
+                 {% for like in cat_list %}
+                     <li><a href="http://facebook.com/{{_(like["id"])}}" target="_blank">{{_(like["name"])}}</a></li>
+                 {% end %}
+             {% end %}
+        {% end %}
+        </ul>
 	</div>
 </div>

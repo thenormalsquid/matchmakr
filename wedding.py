@@ -288,7 +288,7 @@ class CalculatedHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             match_list.append(person)
         try:  
             #deprecate partner.html as we switch to angular for the ui
-            self.render("partner.html", top_match=match_list[0], matches=match_list)
+            self.render("partner.html", top_match=match_list[0], matches=match_list[1:])
             #first in match_list is the 
             #self.write(tornado.escape.json_encode(match_list))
         except IndexError:
