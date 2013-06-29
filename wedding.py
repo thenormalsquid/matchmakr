@@ -303,12 +303,13 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
-        res = yield self.facebook_request("/me", self.create_person,
+        calc_cache = yield tornado.gen.Task(redis.exists, "calculated:%s" % (self.current_user["id"]))
+        if calc_cache:
+            self.redirect("/mymatches")
+        else:
+            res = yield self.facebook_request("/me", self.create_person,
                                           access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
-        #self.create_person(res)
-        yield self.friendlist(res)
-        #me = yield self.facebook_request("", post_args={'batch':[{"method":"GET","relative_url":"me"}, {"method":"GET", "relative_url":"me?fields=friends.limit(100).fields(music)"}]}, access_token=self.current_user["access_token"])
-        #print me       
+            yield self.friendlist(res)
 
     
     @tornado.web.asynchronous
@@ -345,6 +346,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
         yield tornado.gen.Task(pipe.execute) 
         yield tornado.gen.Task(self.make_matches)   
+        yield tornado.gen.Task(redis.setex, "calculated:%s" % self.current_user["id"], 518400, "True")
 
     
     @tornado.gen.coroutine
@@ -424,7 +426,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     #signals to angular that calculation has finished
     def on_finish(self):
         print "calc finished"
-        self.write({"calculation_finished": True})
 
     #signals angular that calc has started
     def prepare(self):
