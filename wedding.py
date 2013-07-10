@@ -28,6 +28,8 @@ redis.connect()
 
 pipe = redis.pipeline()
 
+tcelery.setup_nonblocking_producer()
+
 class Application(tornado.web.Application):
 
     def __init__(self):
@@ -303,12 +305,12 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
+        #rewrite this boolean statement to signal celery calc backends
         calc_cache = yield tornado.gen.Task(redis.exists, "calculated:%s" % (self.current_user["id"]))
         if calc_cache:
             self.redirect("/mymatches")
         else:
-            res = yield self.facebook_request("/me", self.create_person,
-                                          access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
+            res = yield self.facebook_request("/me", self.create_person, access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
             yield self.friendlist(res)
 
     
@@ -319,16 +321,17 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         groupsize = 30
         request_list = []
         for i in res["friends"]["data"]:
-            batch_dict = {"method":"GET", "relative_url":str("%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"]))}
+            batch_dict = {"method":"GET", "relative_url":"%s?fields=movies,name,gender,sports,books,music,relationship_status,television,political,games,religion,education,interests,favorite_athletes,favorite_teams" % str(i["id"])}
             request_list.append(batch_dict)
         requests =(request_list[i:i+groupsize] for i in xrange(0,len(request_list),groupsize))
-        fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, access_token=self.current_user["access_token"]) for f in requests]
+        fdata = yield [tornado.gen.Task(self.facebook_request, "", post_args={"batch":f}, 
+            access_token=self.current_user["access_token"]) for f in requests]
         yield tornado.gen.Task(self.batched_req_gen, fdata)
 
     
     @tornado.gen.coroutine
     def batched_req_gen(self, data):
-        #O(n^2) if we can make this O(n), it will be perfect
+        #this should be triggered once
         pipe = redis.pipeline()
         for i in data:
             for j in i:
@@ -336,7 +339,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     d = ast.literal_eval(j["body"])
                     if d:
                         if 'gender' in d:
-                            #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'data'
+                           #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'da
                             yield tornado.gen.Task(self.asynch_data_handler, d, pipe, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
                         else:
                             #no gender specified, no need to scrape (unless they chose an interested in)
@@ -344,9 +347,12 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
+        pipe.setex("calculated:%s" % self.current_user["id"], 518400, "True")
+        pipe.setex("friend_calculated:%s" % self.current_user["id"], 518400, "True")
+        pipe.setex("calc_det:%s" % self.current_user["id"], 259200, "True")
         yield tornado.gen.Task(pipe.execute) 
         yield tornado.gen.Task(self.make_matches)   
-        yield tornado.gen.Task(redis.setex, "calculated:%s" % self.current_user["id"], 518400, "True")
+        self.redirect("/mymatches")
 
     
     @tornado.gen.coroutine
@@ -429,7 +435,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     #signals angular that calc has started
     def prepare(self):
-        print "calc started"
+        print "calc started" 
         self.write({"calculation_finished": True})
 
 
