@@ -21,6 +21,23 @@
              {% end %}
         {% end %}
         </ul>
-        <a class="btn btn-small">Send a message</a>
+        <button class="btn btn-small" type="button" data-toggle="modal" data-target="#message-modal-contenders-{{count}}">Send a message</button>
 	</div>
+    <div id="message-modal-contenders-{{count}}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="message-model-modal-{{count}}" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Send a message to {{partner["name"]}}</h3>
+    </div>
+    <div class="modal-body">
+        <form action="/send" method="post">
+            <input type="hidden" name="receiver_id" value="{{partner["id"]}}">
+            <textarea cols="15" rows="5" name="msg"></textarea>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-large" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <input type="submit" class="btn btn-large btn-danger" value="Send message">
+        {% module xsrf_form_html() %}
+    </form>
+    </div>
+</div>
 </div>

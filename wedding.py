@@ -1,5 +1,6 @@
 import ast
 import random
+import datetime
 from threading import Thread, Event
 from Queue import Queue
 import logging
@@ -32,6 +33,9 @@ pipe = redis.pipeline()
 
 tcelery.setup_nonblocking_producer()
 
+
+#should probably use separate handler for messaging
+
 class Application(tornado.web.Application):
 
     def __init__(self):
@@ -48,6 +52,7 @@ class Application(tornado.web.Application):
             (r"/auth/logout", AuthLogoutHandler),
             (r"/privacy", PrivacyHandler),
             (r"/terms", TermsHandler),
+            (r"/send", MessageHandler),
         ]
         settings = dict(
             cookie_secret="fdkfadsljdfklsjklad98u32#@RDSAF@#(@*&#jlitjuu#$%i99#@G",
@@ -481,9 +486,10 @@ class TermsHandler(BaseHandler):
 
 class PartnerModule(tornado.web.UIModule):
     #may need to deprecate this module, if we're going the angular route
-    def render(self, partner, css="", interests=False):
+    def render(self, partner, count, css="", interests=False):
         return self.render_string("modules/partner.html",
                                   partner=partner,
+                                  count=count,
                                   css=css,
                                   interests=interests)
 
@@ -492,6 +498,18 @@ class ContenderModule(tornado.web.UIModule):
 
     def render(self, contenders):
         self.render_string("modules/contender.html", contenders=contenders)
+
+
+#Sends and handles message requests
+class MessageHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+
+    @tornado.web.asynchronous
+    def post(self):
+        self.receiver_id = self.get_argument("receiver_id")        
+        self.msg = self.get_argument("msg")
+        print self.msg, self.receiver_id
+        self.redirect("/mymatches")
+
 
 
 def main():

@@ -49,7 +49,6 @@ def create_person(friends):
     pipe.execute()
 
 
-
 def response_munger(response):
     for res in response:
         if "body" in res:

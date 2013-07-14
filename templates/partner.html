@@ -26,13 +26,30 @@
              {% end %}
         {% end %}
         </ul>
-        <a class="btn btn-small">Send a message</a>
+        <button class="btn btn-small" type="button" data-toggle="modal" data-target="#message-modal">Send a message</button>
     </div>
 {% else %}
     <h1>Uh oh! We couldn't find a match for you!</h1>
     <h2>You should get a social life, make friends, and find new interests.</h2>
 {% end %}
 </div>
+</div>
+<div id="message-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="message-model-modal" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Send a message to {{top_match["name"]}}</h3>
+    </div>
+    <div class="modal-body">
+        <form action="/send" method="post">
+            <input type="hidden" name="receiver_id" value="{{top_match["id"]}}">
+            <textarea cols="15" rows="5" name="msg"></textarea>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-large" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <input type="submit" class="btn btn-large btn-danger" value="Send message">
+        {% module xsrf_form_html() %}
+    </form>
+    </div>
 </div>
 {% end %}
 
@@ -45,7 +62,9 @@
             </div>
             <div class="row-fluid">
                 {% set i = 0 %}
+                {% set count = 0 %}
                 {% for p in matches %}
+                    {% set count += 1 %}
                     {% set css = "" %}
                     {% if i % 3 == 0 %}
                     {% if i > 2 %}
@@ -61,7 +80,7 @@
                     {% set css="offset3" %}
                         <div class="row-fluid top-contenders">
                     {% end %}
-                    {% module Partner(p, css, interests=True) %}
+                    {% module Partner(p, count, css, interests=True) %}
                     {% set i = i+1 %}
                 {% end %}
              </div>
