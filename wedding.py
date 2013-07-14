@@ -188,19 +188,13 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe.hexists("users:%s" % self.current_user["id"], "attracted_to")
         pipe.exists("users:%s" % self.current_user["id"])
         pipe.exists("user:%s" % self.current_user["id"])
-        pipe.exists("%s:to_set" % self.current_user["id"])
-        pipe.exists("%s:from_set" % self.current_user["id"])
         try:
-            attraction_known, user_exists, likes_exist, inbox_exist, outbox_exist = yield tornado.gen.Task(pipe.execute)
+            attraction_known, user_exists, likes_exist = yield tornado.gen.Task(pipe.execute)
             token = self.current_user["access_token"]
 
             if not user_exists:
                 logging.debug("getting user info from Facebook")
                 self.facebook_request("/me", self.get_user, access_token=token)
-                #create user message sets
-                if not inbox_exist and not outbox_exist:
-                    pipe.sadd("%s:to_set" % self.current_user["id"], "True")
-                    pipe.sadd("%s:from_set" % self.current_user["id"], "True")
 
             fb_like_fields = (
                 "movies.fields(id,name),music.fields(id,name),"
@@ -510,13 +504,20 @@ class ContenderModule(tornado.web.UIModule):
 class MessageHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
 
     @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def post(self):
         pipe = redis.pipeline()
         self.receiver_id = self.get_argument("receiver_id")        
         self.msg = self.get_argument("msg")
-        #msg hash
-        pipe.hmset("%s:%s:to:%s")
+        to_list_key = "%s:to:%s" % (self.current_user["id"], self.receiver_id)
+        from_list_key = "%s:from:%s" % (self.receiver_id, self.current_user["id"])
+        pipe.rpush(from_list_key, self.msg)
+        pipe.rpush(to_list_key, self.msg)
+        pipe.sadd("%s:to_set" % self.current_user["id"], to_list_key)
+        pipe.sadd("%s:from_set" % self.receiver_id, from_list_key)
+        #notify via facebook that they have a message from flirtatron
         print self.msg, self.receiver_id
+        yield tornado.gen.Task(pipe.execute)
         self.redirect("/mymatches")
 
 
