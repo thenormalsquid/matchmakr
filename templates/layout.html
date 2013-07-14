@@ -20,8 +20,11 @@
             <h1><a href="/main"><img src="static/images/illustrations/flatheart_50.png" />Flirtatron</a></h1>
           </div>
               <div class="span2">
-                <div class="profile" style="background-image:url('//graph.facebook.com/{{current_user["id"]}}/picture?width=50&height=50');"></div>
-                <a class="btn" href="/auth/logout"><h4>Sign Out</h4></a>
+                <ul class="nav">
+                  <li class="active"><a href="#"><h4>Messages</h4><i class="icon-envelope icon-white"></i></a></li>
+                  <li><a href="/main"><div class="profile" style="background-image:url('//graph.facebook.com/{{current_user["id"]}}/picture?width=50&height=50');"></div></a><a class="btn" href="/main"><h4>Home</h4></a></li>
+                  <li><a class="btn" href="/auth/logout"><h4>Sign Out</h4></a></li>
+              </ul>
             </div>
         </div>
       </div>
