@@ -2,3 +2,7 @@ tornado
 logging
 tornado-redis
 redis
+celery 
+tornado-celery
+rabbitmq
+facebook

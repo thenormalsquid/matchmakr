@@ -18,6 +18,8 @@ import tornado.gen
 import tornadoredis
 import settings
 from tornado.options import options
+import tcelery
+import calculations
 
 import simplejson as json
 
@@ -241,7 +243,6 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     @tornado.gen.coroutine
     def make_user(self, data):
         print "inside make_user"
-
         new_user = { "name": data["name"] }
         if 'interested_in' not in data:
             new_user["gender"] = data["gender"]
@@ -307,11 +308,24 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def post(self):
         #rewrite this boolean statement to signal celery calc backends
         calc_cache = yield tornado.gen.Task(redis.exists, "calculated:%s" % (self.current_user["id"]))
+        did_login = yield tornado.gen.Task(redis.exists, "friend_calculated:%s" % self.current_user["id"])
+        delay_calc = yield tornado.gen.Task(redis.exists, "calc_det:%s" % self.current_user["id"])
         if calc_cache:
-            self.redirect("/mymatches")
+            if did_login and not delay_calc:
+                calculations.calculate.apply_async(args=[str(self.current_user["access_token"]), str(self.current_user["id"])])
+                self.redirect("/mymatches")
+            elif did_login and delay_calc:
+                self.redirect("/mymatches")
+            else:
+                self.redirect("/mymatches")
         else:
             res = yield self.facebook_request("/me", self.create_person, access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
             yield self.friendlist(res)
+
+
+    def test_celery(self, response):
+        self.write(str(response.result))
+        self.finish()
 
     
     @tornado.web.asynchronous
@@ -347,9 +361,9 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                     else:
                         print "Something went wrong, retry facebook request"
                     #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
-        pipe.setex("calculated:%s" % self.current_user["id"], 518400, "True")
+        pipe.set("calculated:%s" % self.current_user["id"], "True")
         pipe.setex("friend_calculated:%s" % self.current_user["id"], 518400, "True")
-        pipe.setex("calc_det:%s" % self.current_user["id"], 259200, "True")
+        pipe.setex("calc_det:%s" % self.current_user["id"], 172800, "True")
         yield tornado.gen.Task(pipe.execute) 
         yield tornado.gen.Task(self.make_matches)   
         self.redirect("/mymatches")
@@ -386,10 +400,7 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe = redis.pipeline()
         d = data["friends"]["data"]
         for i in d:
-            if "relationship_status" not in i:
-                pipe.hmset("users:%s" % i["id"], i)
-            else:
-                pipe.hmset("users:%s" % i["id"], i)
+            pipe.hmset("users:%s" % i["id"], i)
         pipe.hset("users:%s" % self.current_user["id"], "f_check", "True")
         yield tornado.gen.Task(pipe.execute)
 
@@ -424,7 +435,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
                 raw = yield tornado.gen.Task(redis.hgetall, like)
                 like_dict[cat].append(raw)
             person["likes"] = like_dict
-            print person
             pipe.hmset("match:%s:%s" % (match, self.current_user["id"]), person)
             pipe.zadd("matches:%s" % self.current_user["id"], match_list.count(match), "match:%s:%s" % (match, self.current_user["id"]))
         yield tornado.gen.Task(pipe.execute)
@@ -433,10 +443,10 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def on_finish(self):
         print "calc finished"
 
+
     #signals angular that calc has started
     def prepare(self):
         print "calc started" 
-        self.write({"calculation_finished": True})
 
 
 class MatchApi(BaseHandler, tornado.auth.FacebookGraphMixin):
@@ -457,11 +467,11 @@ class MatchApi(BaseHandler, tornado.auth.FacebookGraphMixin):
         except IndexError:
             self.write(None)
 
+
 class PrivacyHandler(BaseHandler):
     def get(self):
         logging.info(self.request.headers)
         return self.render("privacy.html")
-
 
 class TermsHandler(BaseHandler):
     def get(self):
