@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}
+    {{_(current_user["name"])}}'s messages
+{% end %}
+{% block body %}
+    <h2>Your Messages</h2>
+    {% if not messages %}
+        <h3>You have no messages, nobody wants to talk to you.</h3>
+    {% else %}
+        <div class="message-outer">
+            <hr>
+            {% for msg in messages %}
+             <div class="msg-row">
+                <!-- should be javascript that makes a request with the slug -->
+                <a href="/inbox/{{msg["key"]}}">
+                {% if current_user["id"] in msg["to"] %}
+                    <strong class="msg-outer-name">{{msg["from_name"]}}</strong>
+                    <i class="msg-outer-timestamp">{{msg["timestamp"]}}</i>
+                {% else %}
+                    <strong class="msg-outer-name">{{msg["to_name"]}}</strong>
+                    <i class="msg-outer-timestamp">{{msg["timestamp"]}}</i>
+                {% end %}
+                <p><img src="//graph.facebook.com/{{ escape(msg["from"]) }}/picture?width=64&height=64">  {{msg["msg"]}}</p>
+                <hr>
+                </a>
+             </div>
+            {% end %}
+        </div>
+    {% end %}
+{% end %}

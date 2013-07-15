@@ -1,4 +1,11 @@
 {% extends "layout.html" %}
+{% block title %}
+    {% if current_user %}
+    {{ escape(current_user["name"])}}'s profile
+    {% else %}
+    Flirting is a game
+    {% end %}
+{% end %}
 {% block body %}
 <div class="row-fluid form-page">
     <div class="span2 offset3">

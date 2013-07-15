@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flirtatron | Flirting is a game</title>
-    <link rel="stylesheet" href="static/css/ie.css" />
-    <link rel="stylesheet" href="static/css/print.css" />
-    <link rel="stylesheet" href="static/css/bootstrap/bootstrap.css" />
-    <link rel="stylesheet" href="static/css/bootstrap/responsive.css" />
-    <link rel="stylesheet" href="static/css/flat-ui.css" />
-    <link rel="stylesheet" href="static/css/screen.css" />
-    <link rel="stylesheet" href="static/css/jquery-ui-1.10.0.custom.css" />
+    <title>Flirtatron | {% block title %}{% end %}</title>
+    <link rel="stylesheet" href="/static/css/ie.css" />
+    <link rel="stylesheet" href="/static/css/print.css" />
+    <link rel="stylesheet" href="/static/css/bootstrap/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/bootstrap/responsive.css" />
+    <link rel="stylesheet" href="/static/css/flat-ui.css" />
+    <link rel="stylesheet" href="/static/css/screen.css" />
+    <link rel="stylesheet" href="/static/css/jquery-ui-1.10.0.custom.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div class="container-fluid">
       {% if current_user %}
+      <!-- turn this masthead into navbar -->
       <div class="masthead">
         <div class="row-fluid">
           <div class="span4 offset3">
-            <h1><a href="/main"><img src="static/images/illustrations/flatheart_50.png" />Flirtatron</a></h1>
+            <h1><a href="/main"><img src="/static/images/illustrations/flatheart_50.png" />Flirtatron</a></h1>
           </div>
               <div class="span2">
                 <ul class="nav">
-                  <li class="active"><a href="#"><h4>Messages</h4><i class="icon-envelope icon-white"></i></a></li>
+                  <li class="active"><a href="/inbox"><h4>Messages</h4></a>
+                  </li>
                   <li><a href="/main"><div class="profile" style="background-image:url('//graph.facebook.com/{{current_user["id"]}}/picture?width=50&height=50');"></div></a><a class="btn" href="/main"><h4>Home</h4></a></li>
                   <li><a class="btn" href="/auth/logout"><h4>Sign Out</h4></a></li>
               </ul>
@@ -50,19 +52,19 @@
         <a href="/terms">Terms</a>
       </div>
     </div>
- <script src="static/js/jquery-1.8.2.min.js"></script>
- <script src="static/js/jquery-ui-1.10.0.custom.min.js"></script>
- <script src="static/js/jquery.dropkick-1.0.0.js"></script>
- <script src="static/js/jquery.tagsinput.js"></script>
- <script src="static/js/jquery.placeholder.js"></script>
- <script src="static/js/lte-ie7-24.js"></script>
- <script src="static/js/html5shiv.js"></script>
- <script src="static/js/icon-font-ie7.js"></script>
- <script src="static/js/custom_checkbox_and_radio.js"></script>
- <script src="static/js/custom_radio.js"></script>
- <script src="static/js/application.js"></script>
- <script src="static/js/bootstrap-tooltip.js"></script>
- <script src="static/js/bootstrap.min.js"></script>
+ <script src="/static/js/jquery-1.8.2.min.js"></script>
+ <script src="/static/js/jquery-ui-1.10.0.custom.min.js"></script>
+ <script src="/static/js/jquery.dropkick-1.0.0.js"></script>
+ <script src="/static/js/jquery.tagsinput.js"></script>
+ <script src="/static/js/jquery.placeholder.js"></script>
+ <script src="/static/js/lte-ie7-24.js"></script>
+ <script src="/static/js/html5shiv.js"></script>
+ <script src="/static/js/icon-font-ie7.js"></script>
+ <script src="/static/js/custom_checkbox_and_radio.js"></script>
+ <script src="/static/js/custom_radio.js"></script>
+ <script src="/static/js/application.js"></script>
+ <script src="/static/js/bootstrap-tooltip.js"></script>
+ <script src="/static/js/bootstrap.min.js"></script>
  <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -72,6 +74,6 @@
     ga('create', 'UA-40801614-1', 'flirtatron.com');
     ga('send', 'pageview');
   </script>
-  <script src="static/js/main.js"></script>
+  <script src="/static/js/main.js"></script>
 </body>
 </html>

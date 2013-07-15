@@ -21,11 +21,14 @@ import settings
 from tornado.options import options
 import tcelery
 import calculations
+import redis
 
 import simplejson as json
 
 #global redis client class
 #don't forget to change back to db1
+r = redis.Redis(host="localhost", port=6379, db=2)
+
 redis = tornadoredis.Client(selected_db=2)
 redis.connect()
 
@@ -53,6 +56,8 @@ class Application(tornado.web.Application):
             (r"/privacy", PrivacyHandler),
             (r"/terms", TermsHandler),
             (r"/send", MessageHandler),
+            (r"/inbox", InboxHandler),
+            (r"/inbox/([^/]+)", ConversationHandler),
         ]
         settings = dict(
             cookie_secret="fdkfadsljdfklsjklad98u32#@RDSAF@#(@*&#jlitjuu#$%i99#@G",
@@ -63,7 +68,7 @@ class Application(tornado.web.Application):
             facebook_api_key=options.facebook_api_key,
             facebook_secret=options.facebook_secret,
             ui_modules={
-                "Partner": PartnerModule, "Contender": ContenderModule},
+                "Partner": PartnerModule, "Contender": ContenderModule, "Message": MessageModule},
             debug=True,
             autoescape=None
         )
@@ -327,11 +332,6 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             res = yield self.facebook_request("/me", self.create_person, access_token=self.current_user["access_token"], fields="friends.fields(id,name,interested_in,relationship_status,gender,birthday)")
             yield self.friendlist(res)
 
-
-    def test_celery(self, response):
-        self.write(str(response.result))
-        self.finish()
-
     
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -352,25 +352,26 @@ class BatchHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
     def batched_req_gen(self, data):
         #this should be triggered once
         pipe = redis.pipeline()
-        for i in data:
-            for j in i:
-                if "body" in j:
-                    d = ast.literal_eval(j["body"])
-                    if d:
-                        if 'gender' in d:
-                           #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'da
-                            yield tornado.gen.Task(self.asynch_data_handler, d, pipe, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+        if data:
+            for i in data:
+                for j in i:
+                    if "body" in j:
+                        d = ast.literal_eval(j["body"])
+                        if d:
+                            if 'gender' in d:
+                               #heirarchy of keys is keywords ie; 'movie', 'sports', etc and then 'da
+                                yield tornado.gen.Task(self.asynch_data_handler, d, pipe, "movies","sports","books","music","television","political","games","religion","education","interests","favorite_athletes","favorite_teams")
+                            else:
+                                #no gender specified, no need to scrape (unless they chose an interested in)
+                                continue
                         else:
-                            #no gender specified, no need to scrape (unless they chose an interested in)
-                            continue
-                    else:
-                        print "Something went wrong, retry facebook request"
-                    #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
-        pipe.set("calculated:%s" % self.current_user["id"], "True")
-        pipe.setex("friend_calculated:%s" % self.current_user["id"], 518400, "True")
-        pipe.setex("calc_det:%s" % self.current_user["id"], 172800, "True")
-        yield tornado.gen.Task(pipe.execute) 
-        yield tornado.gen.Task(self.make_matches)   
+                            print "Something went wrong, retry facebook request"
+                        #right here, call to asynch function that scrapes data, be careful, this could be O(n*n!)
+            pipe.set("calculated:%s" % self.current_user["id"], "True")
+            pipe.setex("friend_calculated:%s" % self.current_user["id"], 518400, "True")
+            pipe.setex("calc_det:%s" % self.current_user["id"], 172800, "True")
+            yield tornado.gen.Task(pipe.execute) 
+            yield tornado.gen.Task(self.make_matches)   
         self.redirect("/mymatches")
 
     
@@ -509,16 +510,114 @@ class MessageHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
         pipe = redis.pipeline()
         self.receiver_id = self.get_argument("receiver_id")        
         self.msg = self.get_argument("msg")
-        to_list_key = "%s:to:%s" % (self.current_user["id"], self.receiver_id)
-        from_list_key = "%s:from:%s" % (self.receiver_id, self.current_user["id"])
-        pipe.rpush(from_list_key, self.msg)
-        pipe.rpush(to_list_key, self.msg)
-        pipe.sadd("%s:to_set" % self.current_user["id"], to_list_key)
-        pipe.sadd("%s:from_set" % self.receiver_id, from_list_key)
-        #notify via facebook that they have a message from flirtatron
-        print self.msg, self.receiver_id
+        #there's only one initiator, example <thien>:<alexis>
+        #if <thien>:<alexis> exists, alexis also uses that key
+        #so, <alexis>:<thien> cannot exist
+        key1 = "%s:%s" % (self.current_user["id"], self.receiver_id)
+        key2 = "%s:%s" % (self.receiver_id, self.current_user["id"])
+        pipe.exists(key1)
+        pipe.exists(key2)
+        pipe.hget("users:%s" % self.receiver_id, "name")
+        to_key , from_key, to_name = yield tornado.gen.Task(pipe.execute)
+        if to_key:
+            msg_hash = {"from_name":str(self.current_user["name"]), "to_name":to_name, "key":str(key1), "from":str(self.current_user["id"]), "to":str(self.receiver_id),
+            "msg": str(self.msg), "timestamp": str(datetime.datetime.now())}
+            pipe.rpush(key1, msg_hash)
+            pipe.sadd("%s:inbox" % self.current_user["id"], key1)
+            pipe.sadd("%s:inbox" % self.receiver_id, key1)
+        elif from_key:
+            msg_hash = {"from_name":str(self.current_user["name"]), "to_name":to_name, "key":str(key2), "from":str(self.current_user["id"]), "to":str(self.receiver_id),
+            "msg": str(self.msg), "timestamp": str(datetime.datetime.now())}
+            pipe.rpush(key2, msg_hash)
+            pipe.sadd("%s:inbox" % self.current_user["id"], key2)
+            pipe.sadd("%s:inbox" % self.receiver_id, key2)
+        else:
+            #initiator is default
+            msg_hash = {"from_name":str(self.current_user["name"]), "to_name":to_name, "key":str(key1), "from":str(self.current_user["id"]), "to":str(self.receiver_id),
+            "msg": str(self.msg), "timestamp": str(datetime.datetime.now())}
+            pipe.rpush(key1, msg_hash)
+            pipe.sadd("%s:inbox" % self.current_user["id"], key1)
+            pipe.sadd("%s:inbox" % self.receiver_id, key1)
         yield tornado.gen.Task(pipe.execute)
         self.redirect("/mymatches")
+
+
+class InboxHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
+
+    #sending messages will have to be ajax request
+    @tornado.web.asynchronous
+    @tornado.web.authenticated
+    @tornado.gen.coroutine
+    def get(self):
+        pipe = redis.pipeline()
+        pipe.smembers("%s:inbox" % self.current_user["id"])
+        curr_inbox = yield tornado.gen.Task(pipe.execute)
+        for msg_key in curr_inbox[0]:
+            pipe.lindex(msg_key, -1)
+        #returns latest message, if want to view full convo
+        #get key from get_argument and then use that to return full
+        #convo from person
+        message_hash = yield tornado.gen.Task(pipe.execute)
+        messages = self.msg_to_dict(message_hash)
+        self.render("inbox.html", messages=messages)
+
+    def msg_to_dict(self, inbox):
+        for msg in inbox:
+            yield ast.literal_eval(msg)
+
+
+    @tornado.web.asynchronous
+    @tornado.web.authenticated
+    @tornado.gen.coroutine
+    def post(self):
+        pipe = redis.pipeline()
+
+
+class ConversationHandler(BaseHandler):
+    
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self, slug):
+        pipe = r.pipeline()
+        #need to clean out slug here
+        pipe.lrange(slug, 0, -1)
+        msg_list = pipe.execute()
+        convo_messages = self.msg_to_dict(msg_list[0])
+        s = slug.split(":")
+        if str(self.current_user["id"]) in s[0]:
+            receiver = s[1]
+        else:
+            receiver = s[0]
+        name = r.hget("users:%s" % receiver, "name")
+        self.render("messages.html", messages=convo_messages, receiver=receiver, receiver_name=name, slug=slug)
+
+    def msg_to_dict(self, inbox):
+        for msg in reversed(inbox):
+            yield ast.literal_eval(msg)
+
+
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self, slug):
+        pipe = redis.pipeline()
+        self.receiver_id = self.get_argument("receiver_id")        
+        self.msg = self.get_argument("msg")
+        self.key = self.get_argument("key")
+        self.name = self.get_argument("name")
+        msg_hash = {"from_name":str(self.current_user["name"]), "to_name":str(self.name), 
+        "key":str(self.key), "from":str(self.current_user["id"]), "to":str(self.receiver_id),
+            "msg": str(self.msg), "timestamp": str(datetime.datetime.now())}
+        pipe.rpush(self.key, msg_hash)
+        pipe.sadd("%s:inbox" % self.current_user["id"], self.key)
+        pipe.sadd("%s:inbox" % self.receiver_id, self.key)
+        yield tornado.gen.Task(pipe.execute)
+        self.redirect("%s"%slug)
+
+class MessageModule(tornado.web.UIModule):
+
+    def render(self, convo_messages):
+        self.render_string("modules/message.html", messages=convo_messages)
+
 
 
 

@@ -1,6 +1,6 @@
 import redis
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host='localhost', port=6379, db=2)
 
 def create_categories():
     pipe = r.pipeline()

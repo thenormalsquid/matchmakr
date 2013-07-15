@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}
+    Conversation between  
+{% end %}
+{% block body %}
+    {% if not messages %}
+        <h3>Error getting messages</h3>
+    {% else %}
+  <div id="message-inbox-modal" class="modal show" tabindex="-1" role="dialog" aria-labelledby="message-model-modal" aria-hidden="false" data-backdrop="show">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Conversation with {{receiver_name}}</h3>
+    </div>
+    <div class="modal-body">
+        {% for msg in messages %}
+             <div class="msg-row">
+                <strong class="msg-outer-name">{{msg["from_name"]}}</strong>
+                <i class="msg-outer-timestamp">{{msg["timestamp"]}}</i>
+                <p><img src="//graph.facebook.com/{{ escape(msg["from"]) }}/picture?width=64&height=64">  {{msg["msg"]}}</p>
+                <hr>
+                </a>
+             </div>
+        {% end %}
+    </div>
+    <div class="modal-footer">
+    <form action="" method="post">
+        <input type="hidden" name="receiver_id" value="{{receiver}}">
+        <input type="hidden" name="key" value="{{slug}}">
+        <input type="hidden" name="name" value="{{receiver_name}}">
+        <input type="text" name="msg">
+        <a href="/inbox" class="btn btn-large">Cancel</a>
+        <input type="submit" class="btn btn-large btn-danger" value="Send message">
+        {% module xsrf_form_html() %}
+    </form>
+    </div>
+  </div>
+        <div class="message-outer">
+            
+        </div>
+    {% end %}
+{% end %}

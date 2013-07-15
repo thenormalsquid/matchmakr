@@ -1,0 +1,21 @@
+{% block title %}
+    Conversation between  
+{% end %}
+{% block body %}
+    <h3>Conversation between</h3>
+    {% if not messages %}
+        <h3>Error getting messages</h3>
+    {% else %}
+        <div class="message-outer">
+            {% for msg in messages %}
+             <div class="msg-row">
+                <strong class="msg-outer-name">{{msg["from_name"]}}</strong>
+                <i class="msg-outer-timestamp">{{msg["timestamp"]}}</i>
+                <p><img src="//graph.facebook.com/{{ escape(msg["from"]) }}/picture?width=64&height=64">  {{msg["msg"]}}</p>
+                <hr>
+                </a>
+             </div>
+            {% end %}
+        </div>
+    {% end %}
+{% end %}

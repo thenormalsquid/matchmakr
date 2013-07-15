@@ -3346,3 +3346,8 @@ body.vjs-full-window {
 .mll, .mhl, .mal {
   margin-left: 20px;
 }
+
+/* line 11 index.html */
+.message-outer a, h4, p {
+  text-decoration: none;
+}
