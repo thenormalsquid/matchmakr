@@ -9,8 +9,9 @@
   <div id="message-inbox-modal" class="modal show" tabindex="-1" role="dialog" aria-labelledby="message-model-modal" aria-hidden="false" data-backdrop="show">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Conversation with {{receiver_name}}</h3>
+       <h3 id="myModalLabel">Conversation with {{receiver_name}}</h3>
     </div>
+    <!-- add javascript class that specifies the end of the message body in modal -->
     <div class="modal-body">
         {% for msg in messages %}
              <div class="msg-row">

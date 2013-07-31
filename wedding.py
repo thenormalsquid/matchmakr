@@ -76,6 +76,10 @@ class Application(tornado.web.Application):
 
 # remove get_likes and use in mainhandler
 
+"""
+  Store a boolean in user hash. This boolean will only be activated 
+  when somebody sends a message to the current user.
+"""
 
 class IndexHandler(tornado.web.RequestHandler):
 
@@ -220,6 +224,7 @@ class MainHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             # #show gender selection form always (like bang with friends)
             # self.write(user)
 
+            # need to check user hash and decide to show notification or not
             if not attraction_known:
                 logging.debug("prompting user for gender attraction")
                 self.render("index.html", show_form=True)
@@ -566,12 +571,6 @@ class InboxHandler(BaseHandler, tornado.auth.FacebookGraphMixin):
             yield ast.literal_eval(msg)
 
 
-    @tornado.web.asynchronous
-    @tornado.web.authenticated
-    @tornado.gen.coroutine
-    def post(self):
-        pipe = redis.pipeline()
-
 
 class ConversationHandler(BaseHandler):
     
@@ -604,12 +603,15 @@ class ConversationHandler(BaseHandler):
         self.msg = self.get_argument("msg")
         self.key = self.get_argument("key")
         self.name = self.get_argument("name")
+        #should be using db instead of cookie
         msg_hash = {"from_name":str(self.current_user["name"]), "to_name":str(self.name), 
         "key":str(self.key), "from":str(self.current_user["id"]), "to":str(self.receiver_id),
             "msg": str(self.msg), "timestamp": str(datetime.datetime.now())}
         pipe.rpush(self.key, msg_hash)
         pipe.sadd("%s:inbox" % self.current_user["id"], self.key)
         pipe.sadd("%s:inbox" % self.receiver_id, self.key)
+        if self.current_user["id"] in msg_hash["from"]:
+            pipe.hset("users:%s" % self.current_user["id"], "new_msg", True)
         yield tornado.gen.Task(pipe.execute)
         self.redirect("%s"%slug)
 
